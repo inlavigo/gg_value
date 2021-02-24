@@ -1,13 +1,10 @@
 name: gg_value
-description: A starting point for Dart libraries or applications.
-# version: 1.0.0
-# homepage: https://www.example.com
+description: An advanced value representation for dart language.
+version: 1.0.0
+homepage: https://github.com/gatzsche
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
-
-#dependencies:
-#  path: ^1.7.0
 
 dev_dependencies:
   pedantic: ^1.9.0
