@@ -1,20 +1,12 @@
-# GgValue - A simple value representation for Dart
+// @license
+// Copyright (c) 2019 - 2021 Dr. Gabriel Gatzsche. All Rights Reserved.
+//
+// Use of this source code is governed by terms that can be
+// found in the LICENSE file in the root of this repository.
 
-GgValue represents a value in the memory of a dart application alongside with
-the following features:
-
-- A stream that provides updates on the value.
-- A mechanism preventing many updates on multiple changes of the value.
-- A custom transform function keeping the value in the desired range.
-- A custom compare function, making sure only changes are delivered.
-
-## Usage
-
-```dart
 import 'package:gg_value/gg_value.dart';
 
 void main() async {
-
   // ...........................
   // Get synchronously set value
   var v = GgValue<int>(seed: 5, spam: false);
@@ -62,16 +54,15 @@ void main() async {
   // Transformed: 4
   // Transformed: 5
 
-
   // ...............................................
-  // Deliver only updates when values have changed.
-  // The param 'isEqual' allows specifying an own comparison function.
+  // Deliver only updates, when values have changed.
+  // The param 'isEqual' allows to specify an own comparison function.
   final haveSameFirstLetters =
       (String a, String b) => a.substring(0, 1) == b.substring(0, 1);
 
   var v3 = GgValue<String>(
     seed: 'Karl',
-    isEqual: haveSameFirstLetters,
+    compare: haveSameFirstLetters,
     spam: true,
   );
 
@@ -90,10 +81,3 @@ void main() async {
   // Outputs:
   // Anna, Berta
 }
-
-```
-
-## Features and bugs
-
-Please file feature requests and bugs at the [GitHub][[tracker](https://github.com/gatzsche/gg_value)].
-
