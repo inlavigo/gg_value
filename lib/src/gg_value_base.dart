@@ -66,7 +66,7 @@ class GgValue<T> {
   T get value => _value;
 
   /// Returns a stream informing about changes on the value
-  Stream<T?> get stream => _controller.stream;
+  Stream<T> get stream => _controller.stream;
 
   // ...........................................................................
   /// Call this method when the value is about to be released.
@@ -85,7 +85,7 @@ class GgValue<T> {
   final List<Function()> _dispose = [];
 
   // ...........................................................................
-  final StreamController<T?> _controller = StreamController<T>.broadcast();
+  final StreamController<T> _controller = StreamController<T>.broadcast();
   void _initController() {
     _dispose.add(() => _controller.close());
   }
