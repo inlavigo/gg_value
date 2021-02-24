@@ -3,17 +3,13 @@
 //
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this repository.
-
-import 'dart:developer';
-
-import 'package:collection/collection.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:gg_value/gg_value.dart';
 import 'package:test/test.dart';
 
 void main() {
   // .........................................................................
-  group('GgValue<int>', () {
+  group('GgValue', () {
     late GgValue<int> v;
     void init() {
       v = GgValue(seed: 0);
@@ -165,19 +161,17 @@ void main() {
           final s1 = v.stream.listen((event) => counter++);
           fake.flushMicrotasks();
           expect(counter, expectedCounter);
-          debugger();
           v.value = secondValue;
           expectedCounter++;
+          fake.flushMicrotasks();
           s1.cancel();
 
           // Wait a little
-          fake.flushMicrotasks();
           expect(counter, expectedCounter);
 
           // Create and cancel a second subscription
           final s2 = v.stream.listen((event) => counter++);
           fake.flushMicrotasks();
-          expectedCounter++;
           expect(counter, expectedCounter);
           s2.cancel();
         });
@@ -195,13 +189,23 @@ void main() {
       });
 
       test('should use the isEqualFunc when provided in constructor', () {
-        final val123a = GgValue(seed: [1, 2, 3]);
-        final val123b = GgValue(seed: [1, 2, 3]);
-        final val123WithComparisonOperator =
-            GgValue(seed: [1, 2, 3], compare: IterableEquality().equals);
+        final haveSameFirstLetters =
+            (String a, String b) => a.substring(0, 1) == b.substring(0, 1);
 
-        expect(val123a == val123b, false);
-        expect(val123WithComparisonOperator == val123b, true);
+        var v3 = GgValue<String>(
+          seed: 'Karl',
+          compare: haveSameFirstLetters,
+          spam: true,
+        );
+
+        v3.value = 'Anna';
+        expect(v3.value, 'Anna');
+        v3.value = 'Arno';
+        expect(v3.value, 'Anna');
+        v3.value = 'Berta';
+        expect(v3.value, 'Berta');
+        v3.value = 'Bernd';
+        expect(v3.value, 'Berta');
       });
     });
   });

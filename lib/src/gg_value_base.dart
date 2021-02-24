@@ -7,16 +7,15 @@
 import 'dart:async';
 
 /// Represents a value of Type T in the memory.
-///
-/// - [seed] The initial seed of the value.
-/// - If [spam] is true, each change of the value will be added to the
-///   stream.
-/// - If [spam] is false, updates of the value are scheduled as micro
-///   tasks. New updates are not added until the last update has been delivered.
-///   Only the last set value will be delivered.
-/// - [transform] allows you to keep value in a given range or transform it.
 class GgValue<T> {
   // ...........................................................................
+  /// - [seed] The initial seed of the value.
+  /// - If [spam] is true, each change of the value will be added to the
+  ///   stream.
+  /// - If [spam] is false, updates of the value are scheduled as micro
+  ///   tasks. New updates are not added until the last update has been delivered.
+  ///   Only the last set value will be delivered.
+  /// - [transform] allows you to keep value in a given range or transform it.
   GgValue({
     required T seed,
     this.spam = false,

@@ -26,7 +26,7 @@ void main() async {
   // ...........................
   // When spam is set to false, stream only delivers last change.
   v.spam = false;
-  v.stream.listen((val) => print('Async: $val'));
+  v.stream.listen((val) => print('Async: $val'));lib
   v.value = 1;
   v.value = 2;
   v.value = 3;
