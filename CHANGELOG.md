@@ -1,3 +1,8 @@
+## 1.0.2
+
+- When used with custom types, no `parse` and `toString` function needs to be
+  specified. An exception will by thrown only `stringValue` is used.
+
 ## 1.0.1
 
 - Parse an generate bool strings

@@ -23,34 +23,6 @@ void main() {
         final nullVal = GgValue<int>(seed: 123);
         expect(nullVal.value, 123);
       });
-
-      test('should throw if type is unknown and no parse method is provided',
-          () {
-        expect(
-          () => GgValue(seed: Foo()),
-          throwsA(
-            predicate((ArgumentError e) {
-              expect(
-                  e.message, 'Missing "parse" method for unknown type "Foo".');
-              return true;
-            }),
-          ),
-        );
-      });
-
-      test('should throw if type is unknown and no toString method is provided',
-          () {
-        expect(
-          () => GgValue(seed: Foo(), parse: (_) => Foo()),
-          throwsA(
-            predicate((ArgumentError e) {
-              expect(e.message,
-                  'Missing "toString" method for unknown type "Foo".');
-              return true;
-            }),
-          ),
-        );
-      });
     });
 
     // #########################################################################
@@ -89,22 +61,28 @@ void main() {
 
     // #########################################################################
     group('stringValue', () {
-      test('should allow to set and get the value from a string', () {
+      test('should allow convert an int from and to a string', () {
         final intVal = GgValue(seed: 5);
         intVal.stringValue = '6';
         expect(intVal.value, 6);
         expect(intVal.stringValue, '6');
+      });
 
+      test('should allow convert a double from and to a string', () {
         final floatVal = GgValue(seed: 5.5);
         floatVal.stringValue = '6.6';
         expect(floatVal.value, 6.6);
         expect(floatVal.stringValue, '6.6');
+      });
 
+      test('should allow convert a string from and to a string', () {
         final stringVal = GgValue(seed: 'hello');
         stringVal.stringValue = 'world';
         expect(stringVal.value, 'world');
         expect(stringVal.stringValue, 'world');
+      });
 
+      test('should allow convert a bool from and to a string', () {
         final boolVal = GgValue(seed: false);
         expect(boolVal.stringValue, 'false');
         boolVal.stringValue = 'True';
@@ -118,7 +96,9 @@ void main() {
         expect(boolVal.value, false);
         boolVal.stringValue = '1';
         expect(boolVal.value, true);
+      });
 
+      test('should allow convert a custom type from and to a string', () {
         final foo0 = Foo();
         final foo1 = Foo();
         final fooVal =
@@ -127,6 +107,39 @@ void main() {
         fooVal.stringValue = 'Hey';
         expect(fooVal.value, foo1);
         expect(fooVal.stringValue, 'Foo3');
+      });
+
+      test(
+          'should throw an exception if no parse method is provided for a custom function',
+          () {
+        final customVal = GgValue(seed: Foo());
+
+        expect(
+          () => customVal.stringValue = 'hello',
+          throwsA(
+            predicate((ArgumentError e) {
+              expect(e.message, 'Missing "parse" method for type "Foo".');
+              return true;
+            }),
+          ),
+        );
+      });
+
+      test(
+          'should throw an exception if no toString method is provided for a custom function',
+          () {
+        final customVal = GgValue(seed: Foo(), parse: (_) => Foo());
+
+        expect(
+          () => customVal.stringValue,
+          throwsA(
+            predicate((ArgumentError e) {
+              expect(e.message,
+                  'Missing "toString" method for unknown type "Foo".');
+              return true;
+            }),
+          ),
+        );
       });
     });
 

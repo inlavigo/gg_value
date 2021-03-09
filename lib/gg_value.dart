@@ -4,4 +4,4 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this repository.
 
-export 'src/gg_value_base.dart';
+export 'src/gg_value.dart';

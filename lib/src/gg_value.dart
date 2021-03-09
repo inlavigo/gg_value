@@ -31,7 +31,6 @@ class GgValue<T> {
         _parse = parse,
         _toString = toString {
     _initController();
-    _checkType();
   }
 
   // ...........................................................................
@@ -81,8 +80,10 @@ class GgValue<T> {
         case 'yes':
           value = true as T;
       }
-    } else {
+    } else if (T == String) {
       value = str as T;
+    } else {
+      throw ArgumentError('Missing "parse" method for type "${T.toString()}".');
     }
   }
 
@@ -95,8 +96,11 @@ class GgValue<T> {
       return _value as String;
     } else if (T == bool) {
       return (_value as bool) ? 'true' : 'false';
-    } else {
+    } else if (T == int || T == double) {
       return _value.toString();
+    } else {
+      throw ArgumentError(
+          'Missing "toString" method for unknown type "${T.toString()}".');
     }
   }
 
@@ -150,32 +154,6 @@ class GgValue<T> {
   // ######################
 
   final List<Function()> _dispose = [];
-
-  // ...........................................................................
-  void _checkType() {
-    _checkParseMethodNeeded();
-    _checkToStringMethodNeeded();
-  }
-
-  // ...........................................................................
-  void _checkParseMethodNeeded() {
-    if (T != String && T != double && T != int && T != bool) {
-      if (_parse == null) {
-        throw ArgumentError(
-            'Missing "parse" method for unknown type "${T.toString()}".');
-      }
-    }
-  }
-
-  // ...........................................................................
-  void _checkToStringMethodNeeded() {
-    if (T != String && T != double && T != int && T != bool) {
-      if (_toString == null) {
-        throw ArgumentError(
-            'Missing "toString" method for unknown type "${T.toString()}".');
-      }
-    }
-  }
 
   // ...........................................................................
   final StreamController<T> _controller = StreamController<T>.broadcast();
