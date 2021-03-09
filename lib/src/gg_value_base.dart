@@ -78,6 +78,18 @@ class GgValue<T> {
   /// Is used to check if the value assigned is valid.
   final T Function(T)? transform;
 
+  // ...........................................................................
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GgValue<T> &&
+          ((compare != null && compare!(_value, other._value)) ||
+              _value == other._value);
+
+  // ...........................................................................
+  @override
+  int get hashCode => _value.hashCode;
+
   // ######################
   // Private
   // ######################
@@ -99,16 +111,4 @@ class GgValue<T> {
   // ...........................................................................
   /// Set a custom comparison operator
   final bool Function(T a, T b)? compare;
-
-  // ...........................................................................
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is GgValue<T> &&
-          ((compare != null && compare!(_value, other._value)) ||
-              _value == other._value);
-
-  // ...........................................................................
-  @override
-  int get hashCode => _value.hashCode;
 }
