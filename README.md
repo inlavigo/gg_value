@@ -117,5 +117,5 @@ void main() async {
 
 ## Features and bugs
 
-Please file feature requests and bugs at the [GitHub][[tracker](https://github.com/inlavigo/gg_value)].
+Please file feature requests and bugs at [GitHub](https://github.com/inlavigo/gg_value).
 
