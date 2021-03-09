@@ -1,3 +1,7 @@
+## 1.0.3-dev.1
+
+- String processing is working for dynamic types also
+
 ## 1.0.2
 
 - When used with custom types, no `parse` and `toString` function needs to be

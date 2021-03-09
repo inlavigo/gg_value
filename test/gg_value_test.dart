@@ -141,6 +141,13 @@ void main() {
           ),
         );
       });
+
+      test('should work when type becomes dynamic', () {
+        final dynamicVal = GgValue<dynamic>(seed: 5.0);
+        expect(dynamicVal.stringValue, '5.0');
+        dynamicVal.stringValue = '6.0';
+        expect(dynamicVal.value, 6.0);
+      });
     });
 
     // #########################################################################

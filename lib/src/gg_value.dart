@@ -62,13 +62,15 @@ class GgValue<T> {
   // ...........................................................................
   /// Parses [str] and writes the result into value.
   set stringValue(String str) {
+    final t = _value.runtimeType;
+
     if (_parse != null) {
       value = _parse!.call(str);
-    } else if (T == int) {
+    } else if (t == int) {
       value = int.parse(str) as T;
-    } else if (T == double) {
+    } else if (t == double) {
       value = double.parse(str) as T;
-    } else if (T == bool) {
+    } else if (t == bool) {
       switch (str.toLowerCase()) {
         case 'false':
         case '0':
@@ -80,7 +82,7 @@ class GgValue<T> {
         case 'yes':
           value = true as T;
       }
-    } else if (T == String) {
+    } else if (t == String) {
       value = str as T;
     } else {
       throw ArgumentError('Missing "parse" method for type "${T.toString()}".');
@@ -90,13 +92,14 @@ class GgValue<T> {
   // ...........................................................................
   /// Returns the [value] as [String].
   String get stringValue {
+    final t = _value.runtimeType;
     if (_toString != null) {
       return _toString!.call(_value);
-    } else if (T == String) {
+    } else if (t == String) {
       return _value as String;
-    } else if (T == bool) {
+    } else if (t == bool) {
       return (_value as bool) ? 'true' : 'false';
-    } else if (T == int || T == double) {
+    } else if (t == int || t == double) {
       return _value.toString();
     } else {
       throw ArgumentError(
@@ -133,6 +136,10 @@ class GgValue<T> {
   // ...........................................................................
   /// Is used to check if the value assigned is valid.
   final T Function(T)? transform;
+
+  // ...........................................................................
+  /// Set a custom comparison operator
+  final bool Function(T a, T b)? compare;
 
   // ...........................................................................
   /// This operator compares to GgValue objects based on the value. When given,
@@ -172,8 +179,4 @@ class GgValue<T> {
 
   // ...........................................................................
   final String Function(T)? _toString;
-
-  // ...........................................................................
-  /// Set a custom comparison operator
-  final bool Function(T a, T b)? compare;
 }
