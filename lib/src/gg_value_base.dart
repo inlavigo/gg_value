@@ -16,13 +16,22 @@ class GgValue<T> {
   ///   tasks. New updates are not added until the last update has been delivered.
   ///   Only the last set value will be delivered.
   /// - [transform] allows you to keep value in a given range or transform it.
+  /// - [parse] is needed when [T] is not [String], [int] or [double]. It
+  ///    converts a string into [T].
+  /// - [toString] is needed when [T] is not [String], [int] or [double]. It
+  ///   converts the value into a [String].
   GgValue({
     required T seed,
     this.spam = false,
     this.compare,
     this.transform,
-  }) : _value = seed {
+    T Function(String)? parse,
+    String Function(T)? toString,
+  })  : _value = seed,
+        _parse = parse,
+        _toString = toString {
     _initController();
+    _checkType();
   }
 
   // ...........................................................................
@@ -52,6 +61,32 @@ class GgValue<T> {
   }
 
   // ...........................................................................
+  /// Parses [str] and writes the result into value.
+  set stringValue(String str) {
+    if (_parse != null) {
+      value = _parse!.call(str);
+    } else if (T == int) {
+      value = int.parse(str) as T;
+    } else if (T == double) {
+      value = double.parse(str) as T;
+    } else {
+      value = str as T;
+    }
+  }
+
+  // ...........................................................................
+  /// Returns the [value] as [String].
+  String get stringValue {
+    if (_toString != null) {
+      return _toString!.call(_value);
+    } else if (T == String) {
+      return _value as String;
+    } else {
+      return _value.toString();
+    }
+  }
+
+  // ...........................................................................
   /// Allows reducing the number of updates delivered when the value is changed
   /// multiple times.
   ///
@@ -60,6 +95,9 @@ class GgValue<T> {
   /// New updates are not added until the last update has been delivered.
   /// Only the last set value will be delivered.
   bool spam;
+
+  // ...........................................................................
+  /// If T is not a String or num, this function is used to parse a string
 
   // ...........................................................................
   /// Returns the value
@@ -97,6 +135,32 @@ class GgValue<T> {
   final List<Function()> _dispose = [];
 
   // ...........................................................................
+  void _checkType() {
+    _checkParseMethodNeeded();
+    _checkToStringMethodNeeded();
+  }
+
+  // ...........................................................................
+  void _checkParseMethodNeeded() {
+    if (T != String && T != double && T != int) {
+      if (_parse == null) {
+        throw ArgumentError(
+            'Missing "parse" method for unknown type "${T.toString()}".');
+      }
+    }
+  }
+
+  // ...........................................................................
+  void _checkToStringMethodNeeded() {
+    if (T != String && T != double && T != int) {
+      if (_toString == null) {
+        throw ArgumentError(
+            'Missing "toString" method for unknown type "${T.toString()}".');
+      }
+    }
+  }
+
+  // ...........................................................................
   final StreamController<T> _controller = StreamController<T>.broadcast();
   void _initController() {
     _dispose.add(() => _controller.close());
@@ -107,6 +171,12 @@ class GgValue<T> {
 
   // ...........................................................................
   bool _isAlreadyTriggered = false;
+
+  // ...........................................................................
+  final T Function(String)? _parse;
+
+  // ...........................................................................
+  final String Function(T)? _toString;
 
   // ...........................................................................
   /// Set a custom comparison operator

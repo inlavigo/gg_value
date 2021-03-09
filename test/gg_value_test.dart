@@ -7,22 +7,53 @@ import 'package:fake_async/fake_async.dart';
 import 'package:gg_value/gg_value.dart';
 import 'package:test/test.dart';
 
+class Foo {}
+
 void main() {
-  // .........................................................................
+  // #########################################################################
   group('GgValue', () {
     late GgValue<int> v;
     void init() {
       v = GgValue(seed: 0);
     }
 
-    ;
+    // #########################################################################
+    group('constructor', () {
+      test('should be initialized with seed ', () {
+        final nullVal = GgValue<int>(seed: 123);
+        expect(nullVal.value, 123);
+      });
 
-    test('should be initialized with seed ', () {
-      final nullVal = GgValue<int>(seed: 123);
-      expect(nullVal.value, 123);
+      test('should throw if type is unknown and no parse method is provided',
+          () {
+        expect(
+          () => GgValue(seed: Foo()),
+          throwsA(
+            predicate((ArgumentError e) {
+              expect(
+                  e.message, 'Missing "parse" method for unknown type "Foo".');
+              return true;
+            }),
+          ),
+        );
+      });
+
+      test('should throw if type is unknown and no toString method is provided',
+          () {
+        expect(
+          () => GgValue(seed: Foo(), parse: (_) => Foo()),
+          throwsA(
+            predicate((ArgumentError e) {
+              expect(e.message,
+                  'Missing "toString" method for unknown type "Foo".');
+              return true;
+            }),
+          ),
+        );
+      });
     });
 
-    // .........................................................................
+    // #########################################################################
     group('dispose', () {
       test('should close the stream', () {
         fakeAsync((fake) {
@@ -38,7 +69,7 @@ void main() {
       });
     });
 
-    // .........................................................................
+    // #########################################################################
     group('value', () {
       test('should allow to set and get the value', () {
         init();
@@ -48,7 +79,36 @@ void main() {
       });
     });
 
-    // .........................................................................
+    // #########################################################################
+    group('stringValue', () {
+      test('should allow to set and get the value from a string', () {
+        final intVal = GgValue(seed: 5);
+        intVal.stringValue = '6';
+        expect(intVal.value, 6);
+        expect(intVal.stringValue, '6');
+
+        final floatVal = GgValue(seed: 5.5);
+        floatVal.stringValue = '6.6';
+        expect(floatVal.value, 6.6);
+        expect(floatVal.stringValue, '6.6');
+
+        final stringVal = GgValue(seed: 'hello');
+        stringVal.stringValue = 'world';
+        expect(stringVal.value, 'world');
+        expect(stringVal.stringValue, 'world');
+
+        final foo0 = Foo();
+        final foo1 = Foo();
+        final fooVal =
+            GgValue(seed: foo0, parse: (_) => foo1, toString: (_) => 'Foo3');
+        expect(fooVal.value, foo0);
+        fooVal.stringValue = 'Hey';
+        expect(fooVal.value, foo1);
+        expect(fooVal.stringValue, 'Foo3');
+      });
+    });
+
+    // #########################################################################
     group('spam', () {
       test(
           'If spam is set to false, only the last of multiple synchronous value'
@@ -95,7 +155,7 @@ void main() {
       });
     });
 
-    // .........................................................................
+    // #########################################################################
     group('transform', () {
       test('should apply a given transform function to a set value', () {
         final ensureMaxFive = (int v) => v > 5 ? 5 : v;
@@ -107,7 +167,7 @@ void main() {
       });
     });
 
-    // .........................................................................
+    // #########################################################################
     group('stream', () {
       test('should allow to observe changes of the state', () {
         fakeAsync((fake) {
@@ -178,7 +238,7 @@ void main() {
       });
     });
 
-    // .........................................................................
+    // #########################################################################
     group('.operator==', () {
       test('should return true if the value is the same', () {
         expect(GgValue(seed: 123) == GgValue(seed: 123), true);

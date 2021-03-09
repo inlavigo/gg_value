@@ -4,7 +4,7 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this repository.
 
-import 'package:gg_value/gg_value.dart';
+import './gg_value.dart';
 
 void main() async {
   // ...........................
@@ -80,4 +80,28 @@ void main() async {
 
   // Outputs:
   // Anna, Berta
+
+  // .........................
+  // Set and get string values
+  var v4 = GgValue(seed: 0);
+  v4.stringValue = '4';
+  print(v4.value);
+  print(v4.stringValue);
+
+  // Outputs:
+  // 4
+  // 4
+
+  // .............................................
+  // Specify a custom parse and to string function
+  int parseEm(String em) => int.parse(em.replaceAll('em', ''));
+  String toEmString(int val) => '${val}em';
+  var v5 = GgValue(seed: 0, parse: parseEm, toString: toEmString);
+  v5.stringValue = '5em';
+  print(v5.value);
+  print(v5.stringValue);
+
+  // Outputs:
+  // 5
+  // 5em
 }

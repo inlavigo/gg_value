@@ -1,3 +1,8 @@
+## 1.0.0
+
+- Parse strings into GgValue
+- Turn GgValue into strings
+
 ## 0.0.9+4
 
 - Moved source code to https://github.com/inlavigo/gg_value

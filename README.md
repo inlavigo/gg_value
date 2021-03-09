@@ -7,14 +7,13 @@ the following features:
 - A mechanism preventing many updates on multiple changes of the value.
 - A custom transform function keeping the value in the desired range.
 - A custom compare function, making sure only changes are delivered.
+- A custom toString function to convert the value into a string
+- A custom parse function converting strings into value
 
 ## Usage
 
 ```dart
-import 'package:gg_value/gg_value.dart';
-
 void main() async {
-
   // ...........................
   // Get synchronously set value
   var v = GgValue<int>(seed: 5, spam: false);
@@ -26,7 +25,7 @@ void main() async {
   // ...........................
   // When spam is set to false, stream only delivers last change.
   v.spam = false;
-  v.stream.listen((val) => print('Async: $val'));lib
+  v.stream.listen((val) => print('Async: $val'));
   v.value = 1;
   v.value = 2;
   v.value = 3;
@@ -62,16 +61,15 @@ void main() async {
   // Transformed: 4
   // Transformed: 5
 
-
   // ...............................................
-  // Deliver only updates when values have changed.
-  // The param 'isEqual' allows specifying an own comparison function.
+  // Deliver only updates, when values have changed.
+  // The param 'isEqual' allows to specify an own comparison function.
   final haveSameFirstLetters =
       (String a, String b) => a.substring(0, 1) == b.substring(0, 1);
 
   var v3 = GgValue<String>(
     seed: 'Karl',
-    isEqual: haveSameFirstLetters,
+    compare: haveSameFirstLetters,
     spam: true,
   );
 
@@ -89,11 +87,35 @@ void main() async {
 
   // Outputs:
   // Anna, Berta
+
+  // .........................
+  // Set and get string values
+  var v4 = GgValue(seed: 0);
+  v4.stringValue = '4';
+  print(v4.value);
+  print(v4.stringValue);
+
+  // Outputs:
+  // 4
+  // 4
+
+  // .............................................
+  // Specify a custom parse and to string function
+  int parseEm(String em) => int.parse(em.replaceAll('em', ''));
+  String toEmString(int val) => '${val}em';
+  var v5 = GgValue(seed: 0, parse: parseEm, toString: toEmString);
+  v5.stringValue = '5em';
+  print(v5.value);
+  print(v5.stringValue);
+
+  // Outputs:
+  // 5
+  // 5em
 }
 
 ```
 
 ## Features and bugs
 
-Please file feature requests and bugs at the [GitHub][[tracker](https://github.com/gatzsche/gg_value)].
+Please file feature requests and bugs at the [GitHub][[tracker](https://github.com/inlavigo/gg_value)].
 
