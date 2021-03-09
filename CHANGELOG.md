@@ -1,3 +1,9 @@
+## 1.0.1
+
+- Parse an generate bool strings
+- Updated documentation
+- Provided example
+
 ## 1.0.0
 
 - Parse strings into GgValue

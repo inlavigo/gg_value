@@ -54,6 +54,14 @@ void main() {
     });
 
     // #########################################################################
+    group('hashCode', () {
+      test('should return the value\'s hashcode', () {
+        final val = GgValue(seed: 'hello');
+        expect(val.hashCode, val.value.hashCode);
+      });
+    });
+
+    // #########################################################################
     group('dispose', () {
       test('should close the stream', () {
         fakeAsync((fake) {
@@ -96,6 +104,20 @@ void main() {
         stringVal.stringValue = 'world';
         expect(stringVal.value, 'world');
         expect(stringVal.stringValue, 'world');
+
+        final boolVal = GgValue(seed: false);
+        expect(boolVal.stringValue, 'false');
+        boolVal.stringValue = 'True';
+        expect(boolVal.value, true);
+        expect(boolVal.stringValue, 'true');
+        boolVal.stringValue = 'no';
+        expect(boolVal.value, false);
+        boolVal.stringValue = 'yes';
+        expect(boolVal.value, true);
+        boolVal.stringValue = '0';
+        expect(boolVal.value, false);
+        boolVal.stringValue = '1';
+        expect(boolVal.value, true);
 
         final foo0 = Foo();
         final foo1 = Foo();

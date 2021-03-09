@@ -16,10 +16,10 @@ class GgValue<T> {
   ///   tasks. New updates are not added until the last update has been delivered.
   ///   Only the last set value will be delivered.
   /// - [transform] allows you to keep value in a given range or transform it.
-  /// - [parse] is needed when [T] is not [String], [int] or [double]. It
-  ///    converts a string into [T].
-  /// - [toString] is needed when [T] is not [String], [int] or [double]. It
-  ///   converts the value into a [String].
+  /// - [parse] is needed when [T] is not [String], [int], [double] or [bool].
+  ///   It converts a string into [T].
+  /// - [toString] is needed when [T] is not [String], [int], [double] or [bool].
+  ///   It converts the value into a [String].
   GgValue({
     required T seed,
     this.spam = false,
@@ -69,6 +69,18 @@ class GgValue<T> {
       value = int.parse(str) as T;
     } else if (T == double) {
       value = double.parse(str) as T;
+    } else if (T == bool) {
+      switch (str.toLowerCase()) {
+        case 'false':
+        case '0':
+        case 'no':
+          value = false as T;
+          break;
+        case 'true':
+        case '1':
+        case 'yes':
+          value = true as T;
+      }
     } else {
       value = str as T;
     }
@@ -81,6 +93,8 @@ class GgValue<T> {
       return _toString!.call(_value);
     } else if (T == String) {
       return _value as String;
+    } else if (T == bool) {
+      return (_value as bool) ? 'true' : 'false';
     } else {
       return _value.toString();
     }
@@ -117,6 +131,8 @@ class GgValue<T> {
   final T Function(T)? transform;
 
   // ...........................................................................
+  /// This operator compares to GgValue objects based on the value. When given,
+  //the [compare] function is used to make the comparison.
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -125,6 +141,7 @@ class GgValue<T> {
               _value == other._value);
 
   // ...........................................................................
+  /// The hashcode of a GgValue is calculated based on the value.
   @override
   int get hashCode => _value.hashCode;
 
@@ -142,7 +159,7 @@ class GgValue<T> {
 
   // ...........................................................................
   void _checkParseMethodNeeded() {
-    if (T != String && T != double && T != int) {
+    if (T != String && T != double && T != int && T != bool) {
       if (_parse == null) {
         throw ArgumentError(
             'Missing "parse" method for unknown type "${T.toString()}".');
@@ -152,7 +169,7 @@ class GgValue<T> {
 
   // ...........................................................................
   void _checkToStringMethodNeeded() {
-    if (T != String && T != double && T != int) {
+    if (T != String && T != double && T != int && T != bool) {
       if (_toString == null) {
         throw ArgumentError(
             'Missing "toString" method for unknown type "${T.toString()}".');

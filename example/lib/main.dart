@@ -4,7 +4,7 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this repository.
 
-import './gg_value.dart';
+import 'package:gg_value/gg_value.dart';
 
 void main() async {
   // ...........................
