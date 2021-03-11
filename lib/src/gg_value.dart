@@ -18,20 +18,26 @@ class GgValue<T> {
   /// - [transform] allows you to keep value in a given range or transform it.
   /// - [parse] is needed when [T] is not [String], [int], [double] or [bool].
   ///   It converts a string into [T].
-  /// - [toString] is needed when [T] is not [String], [int], [double] or [bool].
+  /// - [stringify] is needed when [T] is not [String], [int], [double] or [bool].
   ///   It converts the value into a [String].
+  /// - [name] is an optional identifier for the value.
   GgValue({
     required T seed,
     this.spam = false,
     this.compare,
     this.transform,
     T Function(String)? parse,
-    String Function(T)? toString,
+    String Function(T)? stringify,
+    this.name,
   })  : _value = seed,
         _parse = parse,
-        _toString = toString {
+        _stringify = stringify {
     _initController();
   }
+
+  // ...........................................................................
+  /// An optional name.
+  final String? name;
 
   // ...........................................................................
   /// Sets the value and triggers an update on the stream.
@@ -93,8 +99,8 @@ class GgValue<T> {
   /// Returns the [value] as [String].
   String get stringValue {
     final t = _value.runtimeType;
-    if (_toString != null) {
-      return _toString!.call(_value);
+    if (_stringify != null) {
+      return _stringify!.call(_value);
     } else if (t == String) {
       return _value as String;
     } else if (t == bool) {
@@ -104,6 +110,35 @@ class GgValue<T> {
     } else {
       throw ArgumentError(
           'Missing "toString" method for unknown type "${T.toString()}".');
+    }
+  }
+
+  // ...........................................................................
+  static bool isSimpleJsonValue(dynamic value) =>
+      value is int || value is double || value is bool || value is String;
+
+  // ...........................................................................
+  /// Returns int, double and bool and string as they are.
+  /// For all other types [stringValue] is returned.
+  dynamic get jsonDecodedValue {
+    if (isSimpleJsonValue(_value)) {
+      return _value;
+    } else {
+      return stringValue;
+    }
+  }
+
+  // ...........................................................................
+  /// Values of type int, double, bool and string are assigned directly to [value].
+  /// Values of type string are assigned to [stringValue]
+  set jsonDecodedValue(dynamic value) {
+    if (value is String) {
+      stringValue = value;
+    } else if (isSimpleJsonValue(value)) {
+      this.value = value;
+    } else {
+      throw ArgumentError(
+          'Cannot assign json encoded value $value. The type ${value.runtimeType} is not supported.');
     }
   }
 
@@ -118,12 +153,10 @@ class GgValue<T> {
   bool spam;
 
   // ...........................................................................
-  /// If T is not a String or num, this function is used to parse a string
-
-  // ...........................................................................
   /// Returns the value
   T get value => _value;
 
+  // ...........................................................................
   /// Returns a stream informing about changes on the value
   Stream<T> get stream => _controller.stream;
 
@@ -143,7 +176,7 @@ class GgValue<T> {
 
   // ...........................................................................
   /// This operator compares to GgValue objects based on the value. When given,
-  //the [compare] function is used to make the comparison.
+  /// the [compare] function is used to make the comparison.
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -155,6 +188,13 @@ class GgValue<T> {
   /// The hashcode of a GgValue is calculated based on the value.
   @override
   int get hashCode => _value.hashCode;
+
+  // ...........................................................................
+  /// Returns a string representation of the GgValue.
+  @override
+  String toString() {
+    return 'GgValue<${T.toString()}>(${name != null ? 'name: $name, ' : ''}value: $value)';
+  }
 
   // ######################
   // Private
@@ -178,5 +218,5 @@ class GgValue<T> {
   final T Function(String)? _parse;
 
   // ...........................................................................
-  final String Function(T)? _toString;
+  final String Function(T)? _stringify;
 }

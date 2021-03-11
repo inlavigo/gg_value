@@ -4,6 +4,8 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this repository.
 
+import 'dart:convert';
+
 import 'package:gg_value/gg_value.dart';
 
 void main() async {
@@ -96,7 +98,7 @@ void main() async {
   // Specify a custom parse and to string function
   int parseEm(String em) => int.parse(em.replaceAll('em', ''));
   String toEmString(int val) => '${val}em';
-  var v5 = GgValue(seed: 0, parse: parseEm, toString: toEmString);
+  var v5 = GgValue(seed: 0, parse: parseEm, stringify: toEmString);
   v5.stringValue = '5em';
   print(v5.value);
   print(v5.stringValue);
@@ -104,4 +106,15 @@ void main() async {
   // Outputs:
   // 5
   // 5em
+
+  // .............................................
+  // Use jsonDecodedValue to obtain or assig a value representation that can be
+  // written to JSON.
+  final val6 = GgValue(seed: 6);
+  final object = jsonDecode('{"a": 7}');
+  val6.jsonDecodedValue = object['a'];
+  print(val6.value);
+
+  // Outputs:
+  // 7
 }

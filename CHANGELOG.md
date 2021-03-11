@@ -1,3 +1,14 @@
+## 1.0.3-dev.3
+
+- Added `set jsonDecodedValue` to assign values decoded from json
+- Added `get jsonDecodedValue` to assign values decoded from json
+
+## 1.0.3-dev.2
+
+- Renamed `toString` constructor parameter into `stringify`.
+- Added `toString()` method.
+- Added optional `name` constructor parameter
+
 ## 1.0.3-dev.1
 
 - String processing is working for dynamic types also

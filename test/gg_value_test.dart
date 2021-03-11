@@ -102,7 +102,7 @@ void main() {
         final foo0 = Foo();
         final foo1 = Foo();
         final fooVal =
-            GgValue(seed: foo0, parse: (_) => foo1, toString: (_) => 'Foo3');
+            GgValue(seed: foo0, parse: (_) => foo1, stringify: (_) => 'Foo3');
         expect(fooVal.value, foo0);
         fooVal.stringValue = 'Hey';
         expect(fooVal.value, foo1);
@@ -148,6 +148,81 @@ void main() {
         dynamicVal.stringValue = '6.0';
         expect(dynamicVal.value, 6.0);
       });
+    });
+
+    // #########################################################################
+    group('set jsonDecodedValue', () {
+      late GgValue<int> intVal;
+      late GgValue<double> doubleVal;
+      late GgValue<bool> boolVal;
+
+      setUp(() {
+        intVal = GgValue(seed: 1);
+        doubleVal = GgValue(seed: 1.1);
+        boolVal = GgValue(seed: false);
+      });
+      test('should directly assign values of type int, double or bool. ', () {
+        intVal.jsonDecodedValue = 2;
+        expect(intVal.value, 2);
+
+        doubleVal.jsonDecodedValue = 2.2;
+        expect(doubleVal.value, 2.2);
+
+        boolVal.jsonDecodedValue = true;
+        expect(boolVal.value, true);
+      });
+
+      test('Should assign string values using stringValue.', () {
+        intVal.jsonDecodedValue = '3';
+        expect(intVal.value, 3);
+
+        doubleVal.jsonDecodedValue = '3.3';
+        expect(doubleVal.value, 3.3);
+
+        boolVal.jsonDecodedValue = 'false';
+        expect(boolVal.value, false);
+      });
+
+      test('should throw an exception, when type is not supported ', () {
+        expect(() => intVal.jsonDecodedValue = Foo(),
+            throwsA(predicate((ArgumentError e) {
+          expect(e.message,
+              'Cannot assign json encoded value Instance of \'Foo\'. The type Foo is not supported.');
+          return true;
+        })));
+      });
+    });
+
+    // #########################################################################
+    group('get jsonDecodedValue', () {
+      late GgValue<int> intVal;
+      late GgValue<double> doubleVal;
+      late GgValue<bool> boolVal;
+      late GgValue<String> stringVal;
+
+      setUp(() {
+        intVal = GgValue(seed: 1);
+        doubleVal = GgValue(seed: 1.1);
+        boolVal = GgValue(seed: false);
+        stringVal = GgValue(seed: 'hello');
+      });
+      test(
+          'should return the value directly if type is int, double, bool or string',
+          () {
+        expect(intVal.jsonDecodedValue, 1);
+        expect(doubleVal.jsonDecodedValue, 1.1);
+        expect(boolVal.jsonDecodedValue, false);
+        expect(stringVal.jsonDecodedValue, 'hello');
+      });
+      test('should return stringValue, if type is a non trivial type', () {
+        final fooVal = GgValue(seed: Foo(), stringify: (_) => 'Foo');
+        expect(fooVal.jsonDecodedValue, 'Foo');
+      });
+    });
+
+    // #########################################################################
+    group('get jsonValue', () {
+      test('should directly assign values of type int, double or bool', () {});
     });
 
     // #########################################################################
@@ -308,6 +383,22 @@ void main() {
         expect(v3.value, 'Berta');
         v3.value = 'Bernd';
         expect(v3.value, 'Berta');
+      });
+    });
+
+    // #########################################################################
+    group('toString()', () {
+      test('should return a string containing only the value when name is null',
+          () {
+        final val = GgValue(seed: 5);
+        expect(val.toString(), 'GgValue<int>(value: 5)');
+      });
+
+      test(
+          'should return a string containing name and value when name is defined',
+          () {
+        final val = GgValue(name: 'myValue', seed: 6);
+        expect(val.toString(), 'GgValue<int>(name: myValue, value: 6)');
       });
     });
   });

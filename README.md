@@ -1,14 +1,16 @@
 # GgValue - A simple value representation for Dart
 
-GgValue represents a value in the memory of a dart application alongside with
-the following features:
+GgValue represents a value in the memory together with useful
+features like efficient observing, string conversion etc.
 
-- A stream that provides updates on the value.
-- A mechanism preventing many updates on multiple changes of the value.
-- A custom transform function keeping the value in the desired range.
-- A custom compare function, making sure only changes are delivered.
-- A custom toString function to convert the value into a string
-- A custom parse function converting strings into value
+## Features
+
+- GgValue offers a `stream` that provides updates on the value.
+- A anti `spam` mechanism preventing many updates on multiple changes.
+- A custom `transform` function keeping the value in the desired range.
+- A custom `compare` function, making sure only changes are delivered.
+- A custom `stringify` function to convert the value into a string.
+- A custom `parse` function converting strings into value.
 
 ## Usage
 
@@ -111,6 +113,17 @@ void main() async {
   // Outputs:
   // 5
   // 5em
+
+  // .............................................
+  // Use jsonDecodedValue to obtain or assig a value representation that can be
+  // written to JSON.
+  final val6 = GgValue(seed: 6);
+  final object = jsonDecode('{"a": 7}');
+  val6.jsonDecodedValue = object['a'];
+  print(val6.value);
+
+  // Outputs:
+  // 7
 }
 
 ```
