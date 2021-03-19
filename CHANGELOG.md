@@ -1,4 +1,6 @@
-## 1.0.3-dev.3
+# Change Log
+
+## 1.0.3
 
 - Added `set jsonDecodedValue` to assign values decoded from json
 - Added `get jsonDecodedValue` to assign values decoded from json
