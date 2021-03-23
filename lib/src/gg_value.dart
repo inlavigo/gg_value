@@ -6,8 +6,150 @@
 
 import 'dart:async';
 
+// #############################################################################
+/// [GgValueStream] is an ordinary stream that provides a [value] method that
+/// returns the last value or will be emitted by the stream.
+abstract class GgValueStream<T> extends Stream<T> {
+  /// Returns the last value that was or will be emitted by the stream.
+  T get value;
+
+  // ...........................................................................
+  @override
+  GgValueStream<S> map<S>(S Function(T) mapping) =>
+      _MappedValueStream(this, mapping);
+
+  // ...........................................................................
+  @override
+  GgValueStream<T> where(bool Function(T) filter) =>
+      _WhereValueStream(this, filter);
+
+  // ...........................................................................
+  Stream<T> get baseStream;
+}
+
+// #############################################################################
+class _MappedValueStream<S, T> extends GgValueStream<S> {
+  _MappedValueStream(this.parent, this.mapping)
+      : _value = mapping(parent.value) {
+    final s = parent.baseStream.listen(
+      (event) => _value = mapping(event),
+      onDone: () => _dispose.reversed.forEach((element) => element()),
+    );
+    _dispose.add(s.cancel);
+  }
+
+  // ...........................................................................
+  @override
+  S get value => _value;
+
+  @override
+  Stream<S> get baseStream => parent.baseStream.map(mapping);
+
+  // ...........................................................................
+  @override
+  StreamSubscription<S> listen(void Function(S value)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+    return baseStream.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  }
+
+  final List<Function()> _dispose = [];
+
+  // ...........................................................................
+  S _value;
+  GgValueStream<T> parent;
+
+  // ...........................................................................
+  final S Function(T) mapping;
+}
+
+// #############################################################################
+class _WhereValueStream<T> extends GgValueStream<T> {
+  _WhereValueStream(this.parent, this.filter) : _value = parent.value {
+    final s = parent.baseStream.where(filter).listen(
+          (event) => _value = event,
+          onDone: () => _dispose.reversed.forEach((element) => element()),
+        );
+    _dispose.add(s.cancel);
+  }
+
+  // ...........................................................................
+  @override
+  T get value => _value;
+
+  @override
+  Stream<T> get baseStream => parent.baseStream.where(filter);
+
+  // ...........................................................................
+  @override
+  StreamSubscription<T> listen(void Function(T value)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+    return baseStream.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  }
+
+  final List<Function()> _dispose = [];
+
+  // ...........................................................................
+  T _value;
+  GgValueStream<T> parent;
+
+  // ...........................................................................
+  final bool Function(T) filter;
+}
+
+// #############################################################################
+/// Returns the stream together with a value getter.
+class _GgValueStream<T> extends GgValueStream<T> {
+  _GgValueStream(GgValue<T> ggValue) : _ggValue = ggValue;
+
+  // ...........................................................................
+  @override
+  StreamSubscription<T> listen(void Function(T value)? onData,
+          {Function? onError, void Function()? onDone, bool? cancelOnError}) =>
+      baseStream.listen(onData,
+          onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+
+  @override
+  Stream<T> get baseStream => _ggValue._controller.stream;
+
+  // ...........................................................................
+  @override
+  T get value => _ggValue.value;
+
+  // ######################
+  // Private
+  // ######################
+
+  final GgValue<T> _ggValue;
+}
+
+// #############################################################################
+/// Interface for the the read only part of a GgValue
+abstract class GgReadOnlyValue<T> {
+  /// An optional name.
+  String? get name;
+
+  /// Returns the value
+  T get value;
+
+  /// Converts the value into a string value and returns the result.
+  String get stringValue;
+
+  /// For all other types [stringValue] is returned.
+  dynamic get jsonDecodedValue;
+
+  /// When [spam] is true, GgValue will emit every change. If [spam] is false,
+  /// only one update per run loop cycle will be emitted.
+  bool get spam;
+
+  /// Returns a stream informing about changes on the value
+  _GgValueStream<T> get stream;
+}
+
+// #############################################################################
 /// Represents a value of Type T in the memory.
-class GgValue<T> {
+class GgValue<T> implements GgReadOnlyValue<T> {
   // ...........................................................................
   /// - [seed] The initial seed of the value.
   /// - If [spam] is true, each change of the value will be added to the
@@ -36,7 +178,7 @@ class GgValue<T> {
   }
 
   // ...........................................................................
-  /// An optional name.
+  @override
   final String? name;
 
   // ...........................................................................
@@ -64,6 +206,10 @@ class GgValue<T> {
       });
     }
   }
+
+  // ...........................................................................
+  @override
+  T get value => _value;
 
   // ...........................................................................
   /// Parses [str] and writes the result into value.
@@ -96,7 +242,7 @@ class GgValue<T> {
   }
 
   // ...........................................................................
-  /// Returns the [value] as [String].
+  @override
   String get stringValue {
     final t = _value.runtimeType;
     if (_stringify != null) {
@@ -119,7 +265,7 @@ class GgValue<T> {
 
   // ...........................................................................
   /// Returns int, double and bool and string as they are.
-  /// For all other types [stringValue] is returned.
+  @override
   dynamic get jsonDecodedValue {
     if (isSimpleJsonValue(_value)) {
       return _value;
@@ -150,15 +296,12 @@ class GgValue<T> {
   /// - If [spam] is false, updates of the value are scheduled as micro tasks.
   /// New updates are not added until the last update has been delivered.
   /// Only the last set value will be delivered.
+  @override
   bool spam;
 
   // ...........................................................................
-  /// Returns the value
-  T get value => _value;
-
-  // ...........................................................................
-  /// Returns a stream informing about changes on the value
-  Stream<T> get stream => _controller.stream;
+  @override
+  _GgValueStream<T> get stream => _stream;
 
   // ...........................................................................
   /// Call this method when the value is about to be released.
@@ -204,8 +347,10 @@ class GgValue<T> {
 
   // ...........................................................................
   final StreamController<T> _controller = StreamController<T>.broadcast();
+  late _GgValueStream<T> _stream;
   void _initController() {
     _dispose.add(() => _controller.close());
+    _stream = _GgValueStream(this);
   }
 
   // ...........................................................................

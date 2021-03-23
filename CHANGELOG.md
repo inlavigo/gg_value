@@ -1,5 +1,17 @@
 # Change Log
 
+## 1.1.0-dev.6
+
+- `GgValue.stream.map` was added.
+
+## 1.1.0-dev.5
+
+- In many cases, consumers of `GgValue` should only read but not write. To
+  enforce this, `GgReadOnlyValue` is introduced.
+- Instead of `Stream<T>`, `GgValue<T>` returns a `GgValueStream<T>`, which offers
+  direct access to the last set value.
+- `GgValue.stream.map` was added.
+
 ## 1.0.3
 
 - Added `set jsonDecodedValue` to assign values decoded from json
@@ -33,8 +45,7 @@
 
 ## 0.0.9+4
 
-- Moved source code to https://github.com/inlavigo/gg_value
-
+- Moved source code to <https://github.com/inlavigo/gg_value>
 
 ## 0.0.9+2
 

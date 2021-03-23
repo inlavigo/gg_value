@@ -3,6 +3,7 @@
 //
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this repository.
+
 import 'package:fake_async/fake_async.dart';
 import 'package:gg_value/gg_value.dart';
 import 'package:test/test.dart';
@@ -353,6 +354,11 @@ void main() {
           s2.cancel();
         });
       });
+
+      test('should allow to read the last value from the stream', () {
+        final val = GgValue(seed: 5);
+        expect(val.stream.value, 5);
+      });
     });
 
     // #########################################################################
@@ -399,6 +405,167 @@ void main() {
           () {
         final val = GgValue(name: 'myValue', seed: 6);
         expect(val.toString(), 'GgValue<int>(name: myValue, value: 6)');
+      });
+    });
+  });
+
+  group('GgValueStream', () {
+    group('.map(mapping)', () {
+      test('should a return a GgValueStream mapped to another stream', () {
+        fakeAsync((fake) {
+          // Create a GgValue
+          final val = GgValue(seed: 5);
+
+          // Create a mapping
+          final stringVal = val.stream.map((val) => '$val');
+
+          // Initially the mapping is feed with the seed
+          expect(stringVal.value, '5');
+
+          // Change the value.
+          val.value = 6;
+          fake.flushMicrotasks();
+
+          // Immediately a mapped value should be provided
+          expect(stringVal.value, '6');
+
+          // Lets subscribe
+          var mappedValue = '';
+          final s = stringVal.listen((event) {
+            mappedValue = event;
+          });
+          fake.flushMicrotasks();
+
+          // The value should not be changed because no value has changed
+          // so far.
+          expect(mappedValue, '');
+
+          // Change the value another time
+          val.value = 7;
+          fake.flushMicrotasks();
+          expect(mappedValue, '7');
+
+          // Map a mapped stream
+          final mappedStringVal = stringVal.map((v) => '$v mapped');
+          expect(mappedStringVal.value, '7 mapped');
+
+          // Once the original stream is disposed, the derived stream
+          // should be closed too.
+          val.dispose();
+
+          val.value = 8;
+          fake.flushMicrotasks();
+          expect(mappedValue, '7');
+
+          s.cancel();
+        });
+      });
+
+      test('should call the mapping callback only one time', () {
+        fakeAsync((fake) {
+          final val = GgValue(seed: 5);
+          var counter = 0;
+          val.stream.map((_) => counter++).listen((event) {});
+          fake.flushMicrotasks();
+          expect(counter, 1);
+          val.value = 6;
+          fake.flushMicrotasks();
+          expect(counter, 2);
+        });
+      });
+    });
+
+    group('.where(filter)', () {
+      test('should forward only values that match the filter', () {
+        fakeAsync((fake) {
+          // Create the original value
+          final val = GgValue(seed: 5);
+          var emittedVal = 0;
+          final s = val.stream.listen((value) => emittedVal = value);
+
+          // Create a filtered value stream
+          final filteredVal = val.stream.where((val) => val < 5);
+          var emittedFilteredVal = 0;
+          final s1 = filteredVal.listen((value) => emittedFilteredVal = value);
+
+          // Initially no values should be emitted
+          fake.flushMicrotasks();
+          expect(emittedVal, 0);
+          expect(emittedFilteredVal, 0);
+
+          // Now lets set a value passing the filter.
+          val.value = 4;
+          fake.flushMicrotasks();
+          expect(emittedVal, 4);
+          expect(emittedFilteredVal, 4);
+
+          // Now lets set a value not passing the filter.
+          val.value = 5;
+          fake.flushMicrotasks();
+          expect(emittedVal, 5);
+          expect(emittedFilteredVal, 4);
+
+          s.cancel();
+          s1.cancel();
+        });
+      });
+
+      test('should call the filter callback only one time', () {
+        fakeAsync((fake) {
+          final val = GgValue(seed: 5);
+          var counter = 0;
+          val.stream.where((_) {
+            counter++;
+            return true;
+          }).listen((event) {});
+          fake.flushMicrotasks();
+          expect(counter, 0);
+          val.value = 6;
+          fake.flushMicrotasks();
+          expect(counter, 1);
+        });
+      });
+    });
+
+    group('map(mapping).where(filter)', () {
+      test('should work correctly', () {
+        fakeAsync((fake) {
+          // Create a value
+          final original = GgValue(seed: 5, spam: true);
+
+          // Map the value to string
+          final mapped = original.stream.map((e) => '$e');
+
+          // Filter the string result
+          final filtered = mapped.where((e) => e.length > 1);
+
+          // Listen to filtered values
+          final lastReceivedValues = [];
+          final s = filtered.listen((event) => lastReceivedValues.add(event));
+          fake.flushMicrotasks();
+
+          // Initially we should receive the seed
+          expect(lastReceivedValues, []);
+          fake.flushMicrotasks();
+          expect(lastReceivedValues, []);
+
+          // Set a value which fill be filtered out
+          original.value = 9;
+          fake.flushMicrotasks();
+
+          // It should not have been received
+          expect(lastReceivedValues, []);
+
+          original.value = 10;
+          original.value = 1;
+          original.value = 11;
+          original.value = 1;
+          original.value = 12;
+          fake.flushMicrotasks();
+          expect(lastReceivedValues, ['10', '11', '12']);
+
+          s.cancel();
+        });
       });
     });
   });
