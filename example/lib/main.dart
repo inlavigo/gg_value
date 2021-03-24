@@ -117,4 +117,16 @@ void main() async {
 
   // Outputs:
   // 7
+
+  // .............................
+  // Finally call dispose to close all streams and make sure
+  // pending updates are not emitted anymore.
+  final val7 = GgValue(seed: 6, spam: false);
+  val7.stream.listen((value) => print(value));
+  val7.value++;
+  val7.dispose();
+  await Future.delayed(Duration(microseconds: 1));
+
+  // Outputs:
+  // Nothing, because value has been disposed
 }

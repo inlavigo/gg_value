@@ -14,11 +14,16 @@ abstract class GgValueStream<T> extends Stream<T> {
   T get value;
 
   // ...........................................................................
+  /// Returns a new stream which delivers the elements of the original stream
+  /// mapped using the [mapping] function.
   @override
   GgValueStream<S> map<S>(S Function(T) mapping) =>
       _MappedValueStream(this, mapping);
 
   // ...........................................................................
+  /// Returns a new stream which only delivers elements that match [filter].
+  /// Important: The first value yielded by this stream might not match
+  /// the filter. This is necessary to provide a non-nullable value.
   @override
   GgValueStream<T> where(bool Function(T) filter) =>
       _WhereValueStream(this, filter);
@@ -31,19 +36,17 @@ abstract class GgValueStream<T> extends Stream<T> {
 class _MappedValueStream<S, T> extends GgValueStream<S> {
   _MappedValueStream(this.parent, this.mapping)
       : _value = mapping(parent.value) {
-    final s = parent.baseStream.listen(
-      (event) => _value = mapping(event),
-      onDone: () => _dispose.reversed.forEach((element) => element()),
-    );
-    _dispose.add(s.cancel);
+    _listenToParentStreamAndUpdateValue();
   }
 
   // ...........................................................................
   @override
   S get value => _value;
 
+  // ...........................................................................
+  /// Returns own stream yielding the mapped value
   @override
-  Stream<S> get baseStream => parent.baseStream.map(mapping);
+  Stream<S> get baseStream => parent.baseStream.map((_) => _value).distinct();
 
   // ...........................................................................
   @override
@@ -61,6 +64,15 @@ class _MappedValueStream<S, T> extends GgValueStream<S> {
 
   // ...........................................................................
   final S Function(T) mapping;
+
+  // ...........................................................................
+  void _listenToParentStreamAndUpdateValue() {
+    final s = parent.baseStream.listen(
+      (event) => _value = mapping(event),
+      onDone: () => _dispose.reversed.forEach((element) => element()),
+    );
+    _dispose.add(s.cancel);
+  }
 }
 
 // #############################################################################
@@ -78,7 +90,7 @@ class _WhereValueStream<T> extends GgValueStream<T> {
   T get value => _value;
 
   @override
-  Stream<T> get baseStream => parent.baseStream.where(filter);
+  Stream<T> get baseStream => parent.baseStream.map((_) => _value).distinct();
 
   // ...........................................................................
   @override
@@ -200,7 +212,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
       _isAlreadyTriggered = true;
       scheduleMicrotask(() {
         _isAlreadyTriggered = false;
-        if (_controller.hasListener) {
+        if (_controller.hasListener && !_isDisposed) {
           _controller.add(_value);
         }
       });
@@ -307,6 +319,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   /// Call this method when the value is about to be released.
   void dispose() {
     _dispose.reversed.forEach((e) => e());
+    _dispose.clear();
   }
 
   // ...........................................................................
@@ -344,6 +357,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   // ######################
 
   final List<Function()> _dispose = [];
+  bool get _isDisposed => _dispose.isEmpty;
 
   // ...........................................................................
   final StreamController<T> _controller = StreamController<T>.broadcast();

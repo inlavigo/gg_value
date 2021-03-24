@@ -1,31 +1,21 @@
 # Change Log
 
-## 1.1.0-dev.6
+## 1.1.0
 
 - `GgValue.stream.map` was added.
-
-## 1.1.0-dev.5
-
 - In many cases, consumers of `GgValue` should only read but not write. To
   enforce this, `GgReadOnlyValue` is introduced.
 - Instead of `Stream<T>`, `GgValue<T>` returns a `GgValueStream<T>`, which offers
   direct access to the last set value.
 - `GgValue.stream.map` was added.
-
-## 1.0.3
-
 - Added `set jsonDecodedValue` to assign values decoded from json
 - Added `get jsonDecodedValue` to assign values decoded from json
-
-## 1.0.3-dev.2
-
 - Renamed `toString` constructor parameter into `stringify`.
 - Added `toString()` method.
 - Added optional `name` constructor parameter
-
-## 1.0.3-dev.1
-
 - String processing is working for dynamic types also
+- Fixed: Once `dispose` was called, instances of `GgValue` will not emit any
+  updates anymore.
 
 ## 1.0.2
 
