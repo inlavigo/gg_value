@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.2.0
+
+- `reset` can be called to set value back to seed
+
 ## 1.1.0
 
 - `GgValue.stream.map` was added.

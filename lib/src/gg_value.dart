@@ -86,8 +86,8 @@ class _WhereValueStream<T> extends GgValueStream<T> {
   }
 
   // ...........................................................................
-  @override
-  T get value => _value;
+  @override // coverage:ignore-line
+  T get value => _value; // coverage:ignore-line
 
   @override
   Stream<T> get baseStream => parent.baseStream.map((_) => _value).distinct();
@@ -145,6 +145,9 @@ abstract class GgReadOnlyValue<T> {
   /// Returns the value
   T get value;
 
+  /// The default value
+  T get seed;
+
   /// Converts the value into a string value and returns the result.
   String get stringValue;
 
@@ -184,6 +187,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
     String Function(T)? stringify,
     this.name,
   })  : _value = seed,
+        _seed = seed,
         _parse = parse,
         _stringify = stringify {
     _initController();
@@ -222,6 +226,13 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   // ...........................................................................
   @override
   T get value => _value;
+
+  // ...........................................................................
+  @override
+  T get seed => _seed;
+
+  // ...........................................................................
+  void reset() => value = _seed;
 
   // ...........................................................................
   /// Parses [str] and writes the result into value.
@@ -369,6 +380,9 @@ class GgValue<T> implements GgReadOnlyValue<T> {
 
   // ...........................................................................
   T _value;
+
+  // ...........................................................................
+  final T _seed;
 
   // ...........................................................................
   bool _isAlreadyTriggered = false;

@@ -14,22 +14,24 @@ void main() {
   // #########################################################################
   group('GgValue', () {
     late GgValue<int> v;
+    const seedInt = 0;
+    const seedString = 'hello';
     void init() {
-      v = GgValue(seed: 0);
+      v = GgValue(seed: seedInt);
     }
 
     // #########################################################################
     group('constructor', () {
       test('should be initialized with seed ', () {
-        final nullVal = GgValue<int>(seed: 123);
-        expect(nullVal.value, 123);
+        final nullVal = GgValue<int>(seed: seedInt);
+        expect(nullVal.value, seedInt);
       });
     });
 
     // #########################################################################
     group('hashCode', () {
       test('should return the value\'s hashcode', () {
-        final val = GgValue(seed: 'hello');
+        final val = GgValue(seed: seedString);
         expect(val.hashCode, val.value.hashCode);
       });
     });
@@ -82,6 +84,29 @@ void main() {
         const val = 172390;
         v.value = val;
         expect(v.value, val);
+      });
+    });
+
+    // #########################################################################
+    group('seed', () {
+      test('returns the ssed value', () {
+        init();
+        const val = 172390;
+        v.value = val;
+        expect(v.value, val);
+        expect(v.seed, seedInt);
+      });
+    });
+
+    // #########################################################################
+    group('reset', () {
+      test('should set value back to seed', () {
+        init();
+        const val = 172390;
+        v.value = val;
+        expect(v.value, val);
+        v.reset();
+        expect(v.value, seedInt);
       });
     });
 
@@ -510,6 +535,8 @@ void main() {
 
           // Create a filtered value stream
           final filteredVal = val.stream.where((val) => val < 5);
+          expect(filteredVal.value, val.seed);
+
           var emittedFilteredVal = 0;
           final s1 = filteredVal.listen((value) => emittedFilteredVal = value);
 
@@ -529,6 +556,9 @@ void main() {
           fake.flushMicrotasks();
           expect(emittedVal, 5);
           expect(emittedFilteredVal, 4);
+
+          val.dispose();
+          fake.flushMicrotasks();
 
           s.cancel();
           s1.cancel();
