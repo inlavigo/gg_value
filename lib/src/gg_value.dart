@@ -67,10 +67,12 @@ class _MappedValueStream<S, T> extends GgValueStream<S> {
 
   // ...........................................................................
   void _listenToParentStreamAndUpdateValue() {
-    final s = parent.baseStream.listen(
-      (event) => _value = mapping(event),
-      onDone: () => _dispose.reversed.forEach((element) => element()),
-    );
+    final s = parent.baseStream.listen((event) => _value = mapping(event),
+        onDone: () {
+      for (final func in _dispose.reversed) {
+        func();
+      }
+    });
     _dispose.add(s.cancel);
   }
 }
@@ -78,10 +80,12 @@ class _MappedValueStream<S, T> extends GgValueStream<S> {
 // #############################################################################
 class _WhereValueStream<T> extends GgValueStream<T> {
   _WhereValueStream(this.parent, this.filter) : _value = parent.value {
-    final s = parent.baseStream.where(filter).listen(
-          (event) => _value = event,
-          onDone: () => _dispose.reversed.forEach((element) => element()),
-        );
+    final s = parent.baseStream.where(filter).listen((event) => _value = event,
+        onDone: () {
+      for (final func in _dispose.reversed) {
+        func();
+      }
+    });
     _dispose.add(s.cancel);
   }
 
@@ -159,6 +163,7 @@ abstract class GgReadOnlyValue<T> {
   bool get spam;
 
   /// Returns a stream informing about changes on the value
+  // ignore: library_private_types_in_public_api
   _GgValueStream<T> get stream;
 }
 
@@ -324,12 +329,15 @@ class GgValue<T> implements GgReadOnlyValue<T> {
 
   // ...........................................................................
   @override
+  // ignore: library_private_types_in_public_api
   _GgValueStream<T> get stream => _stream;
 
   // ...........................................................................
   /// Call this method when the value is about to be released.
   void dispose() {
-    _dispose.reversed.forEach((e) => e());
+    for (final func in _dispose.reversed) {
+      func();
+    }
     _dispose.clear();
   }
 

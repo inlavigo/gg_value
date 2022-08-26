@@ -326,7 +326,7 @@ void main() {
     // #########################################################################
     group('transform', () {
       test('should apply a given transform function to a set value', () {
-        final ensureMaxFive = (int v) => v > 5 ? 5 : v;
+        int ensureMaxFive(int v) => v > 5 ? 5 : v;
         var v2 = GgValue<int>(seed: 0, transform: ensureMaxFive);
         v2.value = 4;
         expect(v2.value, 4);
@@ -422,8 +422,8 @@ void main() {
       });
 
       test('should use the isEqualFunc when provided in constructor', () {
-        final haveSameFirstLetters =
-            (String a, String b) => a.substring(0, 1) == b.substring(0, 1);
+        bool haveSameFirstLetters(String a, String b) =>
+            a.substring(0, 1) == b.substring(0, 1);
 
         var v3 = GgValue<String>(
           seed: 'Karl',

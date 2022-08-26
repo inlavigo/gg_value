@@ -24,7 +24,7 @@ void main() async {
   v.value = 1;
   v.value = 2;
   v.value = 3;
-  await Future.delayed(Duration(microseconds: 1));
+  await Future.delayed(const Duration(microseconds: 1));
 
   // Outputs:
   // Async: 3
@@ -35,7 +35,7 @@ void main() async {
   v.value = 7;
   v.value = 8;
   v.value = 9;
-  await Future.delayed(Duration(microseconds: 1));
+  await Future.delayed(const Duration(microseconds: 1));
 
   // Outputs:
   // Async: 7
@@ -44,13 +44,13 @@ void main() async {
 
   // ..................................
   // Check or transform assigned values
-  final ensureMaxFive = (int v) => v > 5 ? 5 : v;
+  int ensureMaxFive(int v) => v > 5 ? 5 : v;
   var v2 = GgValue<int>(seed: 0, transform: ensureMaxFive);
   v2.value = 4;
   print('Transformed: ${v2.value}');
   v2.value = 10;
   print('Transformed: ${v2.value}');
-  await Future.delayed(Duration(microseconds: 1));
+  await Future.delayed(const Duration(microseconds: 1));
 
   // Outputs:
   // Transformed: 4
@@ -59,8 +59,8 @@ void main() async {
   // ...............................................
   // Deliver only updates, when values have changed.
   // The param 'isEqual' allows to specify an own comparison function.
-  final haveSameFirstLetters =
-      (String a, String b) => a.substring(0, 1) == b.substring(0, 1);
+  bool haveSameFirstLetters(String a, String b) =>
+      a.substring(0, 1) == b.substring(0, 1);
 
   var v3 = GgValue<String>(
     seed: 'Karl',
@@ -76,7 +76,7 @@ void main() async {
   v3.value = 'Berta';
   v3.value = 'Bernd';
 
-  await Future.delayed(Duration(microseconds: 1));
+  await Future.delayed(const Duration(microseconds: 1));
 
   print(receivedUpdates.join(', '));
 
@@ -125,7 +125,7 @@ void main() async {
   val7.stream.listen((value) => print(value));
   val7.value++;
   val7.dispose();
-  await Future.delayed(Duration(microseconds: 1));
+  await Future.delayed(const Duration(microseconds: 1));
 
   // Outputs:
   // Nothing, because value has been disposed
