@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.3.6+3
+
+- `sync` and `unsync` to sync multiple values with each other.
+
 ## 1.2.0
 
 - `reset` can be called to set value back to seed

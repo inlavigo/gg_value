@@ -89,7 +89,7 @@ void main() {
 
     // #########################################################################
     group('seed', () {
-      test('returns the ssed value', () {
+      test('returns the seed value', () {
         init();
         const val = 172390;
         v.value = val;
@@ -459,6 +459,7 @@ void main() {
     });
   });
 
+  // ###########################################################################
   group('GgValueStream', () {
     group('.map(mapping)', () {
       test('should a return a GgValueStream mapped to another stream', () {

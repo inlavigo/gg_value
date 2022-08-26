@@ -11,6 +11,7 @@ features like efficient observing, string conversion etc.
 - A custom `compare` function, making sure only changes are delivered.
 - A custom `stringify` function to convert the value into a string.
 - A custom `parse` function converting strings into value.
+- A `syncWith` and `unsync` function to sync the value with another ones.
 
 ## Usage
 
@@ -122,8 +123,43 @@ void main() async {
   val6.jsonDecodedValue = object['a'];
   print(val6.value);
 
+  // ..........................................
+  // Sync multiple values using syncWith and unsync
+  final valA = GgValue(seed: 'A');
+  final valB = GgValue(seed: 'B');
+  final valC = GgValue(seed: 'C');
+
+  valA.syncWith(valB);
+  print(valA.value);
+  print(valB.value);
+  valB.syncWith(valC);
+  print(valC.value);
+
   // Outputs:
-  // 7
+  // A
+  // A
+  // A
+
+  valB.value = 'B';
+  print(valA.value);
+  print(valB.value);
+  print(valC.value);
+
+  // Outputs:
+  // B
+  // B
+  // B
+
+  valC.unsync();
+  valC.value = 'C';
+  print(valA.value);
+  print(valB.value);
+  print(valC.value);
+
+  // Outputs:
+  // B
+  // B
+  // C
 }
 
 ```
