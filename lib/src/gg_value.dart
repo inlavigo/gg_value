@@ -6,6 +6,8 @@
 
 import 'dart:async';
 
+part 'gg_sync.dart';
+
 // #############################################################################
 /// [GgValueStream] is an ordinary stream that provides a [value] method that
 /// returns the last value or will be emitted by the stream.
@@ -205,26 +207,10 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   // ...........................................................................
   /// Sets the value and triggers an update on the stream.
   set value(T value) {
-    if (value == _value) {
-      return;
-    }
-
-    if (compare != null && compare!(value, _value)) {
-      return;
-    }
-
-    _value = transform == null ? value : transform!(value);
-
-    if (spam) {
-      _controller.add(_value);
-    } else if (!_isAlreadyTriggered) {
-      _isAlreadyTriggered = true;
-      scheduleMicrotask(() {
-        _isAlreadyTriggered = false;
-        if (_controller.hasListener && !_isDisposed) {
-          _controller.add(_value);
-        }
-      });
+    if (_sync == null) {
+      _setValue(value);
+    } else {
+      _sync!.value = value;
     }
   }
 
@@ -237,7 +223,13 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   T get seed => _seed;
 
   // ...........................................................................
-  void reset() => value = _seed;
+  void reset() {
+    if (_sync != null) {
+      throw ArgumentError('Don\'t reset values that are currently synced.');
+    } else {
+      value = _seed;
+    }
+  }
 
   // ...........................................................................
   /// Parses [str] and writes the result into value.
@@ -371,6 +363,26 @@ class GgValue<T> implements GgReadOnlyValue<T> {
     return 'GgValue<${T.toString()}>(${name != null ? 'name: $name, ' : ''}value: $value)';
   }
 
+  // ...........................................................................
+  GgSync? _sync;
+
+  // ...........................................................................
+  /// Two way sync this value with another value
+  void syncWith(GgValue<T> other) {
+    if (other == this) {
+      return;
+    }
+
+    _sync ??= GgSync<T>._(firstValue: this);
+    _sync!._addValue(other);
+  }
+
+  // ...........................................................................
+  /// Remove the synchronization with another element
+  void unsync() {
+    _sync?._removeValue(this);
+  }
+
   // ######################
   // Private
   // ######################
@@ -390,6 +402,31 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   T _value;
 
   // ...........................................................................
+  void _setValue(T value) {
+    if (value == _value) {
+      return;
+    }
+
+    if (compare != null && compare!(value, _value)) {
+      return;
+    }
+
+    _value = transform == null ? value : transform!(value);
+
+    if (spam) {
+      _controller.add(_value);
+    } else if (!_isAlreadyTriggered) {
+      _isAlreadyTriggered = true;
+      scheduleMicrotask(() {
+        _isAlreadyTriggered = false;
+        if (_controller.hasListener && !_isDisposed) {
+          _controller.add(_value);
+        }
+      });
+    }
+  }
+
+  // ...........................................................................
   final T _seed;
 
   // ...........................................................................
@@ -400,4 +437,9 @@ class GgValue<T> implements GgReadOnlyValue<T> {
 
   // ...........................................................................
   final String Function(T)? _stringify;
+
+  // ...........................................................................
+  void _applySync(T syncedValue) {
+    _setValue(syncedValue);
+  }
 }

@@ -129,4 +129,42 @@ void main() async {
 
   // Outputs:
   // Nothing, because value has been disposed
+
+  // ..........................................
+  // Sync multiple values using syncWith and unsync
+  final valA = GgValue(seed: 'A');
+  final valB = GgValue(seed: 'B');
+  final valC = GgValue(seed: 'C');
+
+  valA.syncWith(valB);
+  print(valA.value);
+  print(valB.value);
+  valB.syncWith(valC);
+  print(valC.value);
+
+  // Outputs:
+  // A
+  // A
+  // A
+
+  valB.value = 'B';
+  print(valA.value);
+  print(valB.value);
+  print(valC.value);
+
+  // Outputs:
+  // B
+  // B
+  // B
+
+  valC.unsync();
+  valC.value = 'C';
+  print(valA.value);
+  print(valB.value);
+  print(valC.value);
+
+  // Outputs:
+  // B
+  // B
+  // C
 }
