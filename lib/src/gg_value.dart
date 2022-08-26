@@ -205,26 +205,10 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   // ...........................................................................
   /// Sets the value and triggers an update on the stream.
   set value(T value) {
-    if (value == _value) {
-      return;
-    }
-
-    if (compare != null && compare!(value, _value)) {
-      return;
-    }
-
-    _value = transform == null ? value : transform!(value);
-
-    if (spam) {
-      _controller.add(_value);
-    } else if (!_isAlreadyTriggered) {
-      _isAlreadyTriggered = true;
-      scheduleMicrotask(() {
-        _isAlreadyTriggered = false;
-        if (_controller.hasListener && !_isDisposed) {
-          _controller.add(_value);
-        }
-      });
+    if (_sync == null) {
+      _setValue(value);
+    } else {
+      _sync!.value = value;
     }
   }
 
@@ -237,7 +221,13 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   T get seed => _seed;
 
   // ...........................................................................
-  void reset() => value = _seed;
+  void reset() {
+    if (_sync != null) {
+      throw ArgumentError('Don\'t reset values that are currently synced.');
+    } else {
+      value = _seed;
+    }
+  }
 
   // ...........................................................................
   /// Parses [str] and writes the result into value.
@@ -390,6 +380,31 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   T _value;
 
   // ...........................................................................
+  void _setValue(T value) {
+    if (value == _value) {
+      return;
+    }
+
+    if (compare != null && compare!(value, _value)) {
+      return;
+    }
+
+    _value = transform == null ? value : transform!(value);
+
+    if (spam) {
+      _controller.add(_value);
+    } else if (!_isAlreadyTriggered) {
+      _isAlreadyTriggered = true;
+      scheduleMicrotask(() {
+        _isAlreadyTriggered = false;
+        if (_controller.hasListener && !_isDisposed) {
+          _controller.add(_value);
+        }
+      });
+    }
+  }
+
+  // ...........................................................................
   final T _seed;
 
   // ...........................................................................
@@ -400,4 +415,114 @@ class GgValue<T> implements GgReadOnlyValue<T> {
 
   // ...........................................................................
   final String Function(T)? _stringify;
+
+  // ...........................................................................
+  GgSync? _sync;
+
+  // ...........................................................................
+  void _applySync(T syncedValue) {
+    _setValue(syncedValue);
+  }
+}
+
+// #############################################################################
+/// Synchronize a bunch of values
+class GgSync<T> {
+  /// [values] is the initial list of values to be synced.
+  /// Additional values can be added using [addValue] and [removeValue].
+  /// [seed] is the initial value that is synced to all values in the list.
+  GgSync({
+    required List<GgValue<T>> values,
+    required T seed,
+  }) : _value = seed {
+    _init(values);
+  }
+
+  // ...........................................................................
+  /// Call this method when the sync is not needed anymore.
+  /// Will remove the sync from all values.
+  void dispose() {
+    for (final d in _dispose.reversed) {
+      d();
+    }
+  }
+
+  // ...........................................................................
+  /// Add a value to be synced with previously added values.
+  void addValue(GgValue<T> value) {
+    if (values.contains(value)) {
+      throw ArgumentError('The value has already been added.'
+          'Make sure that you add values only one tim.');
+    }
+
+    if (value._sync != null) {
+      throw ArgumentError(
+        'The value is already synced with another sync object.'
+        'You must not add a value only to one GgSyncValue.',
+      );
+    }
+
+    values.add(value);
+    assert(value._sync == null);
+    value._sync = this;
+    value._applySync(_value);
+  }
+
+  // ...........................................................................
+  void removeValue(GgValue<T> value) {
+    if (!values.contains(value)) {
+      throw ArgumentError(
+          'The value to be removed from sync was not added before.');
+    }
+
+    values.removeWhere((e) => identical(e, value));
+    value._sync = null;
+  }
+
+  // ...........................................................................
+  final values = <GgValue<T>>[];
+
+  // ...........................................................................
+  set value(T val) {
+    if (_value == val) {
+      return;
+    }
+
+    _value = val;
+    for (final v in values) {
+      v._applySync(_value);
+    }
+  }
+
+  // ...........................................................................
+  T get value => _value;
+
+  // ######################
+  // Private
+  // ######################
+
+  final List<Function()> _dispose = [];
+
+  T _value;
+
+  void _init(List<GgValue<T>> values) {
+    _initValues(values);
+    _initDispose();
+  }
+
+  // .........................................................................
+  void _initDispose() {
+    _dispose.add(() {
+      for (final value in values) {
+        value._sync = null;
+      }
+    });
+  }
+
+  // ...........................................................................
+  void _initValues(List<GgValue<T>> vals) {
+    for (final value in vals) {
+      addValue(value);
+    }
+  }
 }

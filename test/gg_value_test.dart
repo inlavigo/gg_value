@@ -89,7 +89,7 @@ void main() {
 
     // #########################################################################
     group('seed', () {
-      test('returns the ssed value', () {
+      test('returns the seed value', () {
         init();
         const val = 172390;
         v.value = val;
@@ -459,6 +459,7 @@ void main() {
     });
   });
 
+  // ###########################################################################
   group('GgValueStream', () {
     group('.map(mapping)', () {
       test('should a return a GgValueStream mapped to another stream', () {
@@ -625,6 +626,61 @@ void main() {
           s.cancel();
         });
       });
+    });
+  });
+
+  // #########################################################################
+  group('GgSync', () {
+    test('should allow to sync GgValues', () {
+      // Create three GgValues
+      final val0 = GgValue<int>(seed: 0);
+      final val1 = GgValue<int>(seed: 1);
+      final val2 = GgValue<int>(seed: 2);
+
+      // Create a Ggsync with two of the three values and a seed
+      const syncSeed = 4;
+      final sync = GgSync(seed: syncSeed, values: [val0, val1]);
+
+      // Make sure the seed was written to all two values, but not the third one
+      expect(val0.value, syncSeed);
+      expect(val1.value, syncSeed);
+      expect(val2.value, isNot(syncSeed));
+
+      // Add the third value and check if the seed is also synced.
+      sync.addValue(val2);
+      expect(val2.value, syncSeed);
+
+      // Change the value of one of the values.
+      final change0 = val2.value + 1;
+      val2.value = change0;
+
+      // Make sure the change is applied to all three values.
+      expect(val0.value, change0);
+      expect(val1.value, change0);
+      expect(val2.value, change0);
+
+      // Remove one of the values.
+      final removedValue = val1;
+      sync.removeValue(removedValue);
+
+      // Change one of the synced values.
+      final change1 = val0.value + 1;
+      val0.value = change1;
+
+      // The change should not be applied to the removed value.
+      expect(removedValue, val1);
+      expect(val0.value, change1);
+      expect(val1.value, isNot(change1));
+      expect(val2.value, change1);
+
+      // Change the removed value.
+      const change2 = 123;
+      removedValue.value = change2;
+
+      // The change should not be applied to the values still synced.
+      expect(val0.value, isNot(change2));
+      expect(val1.value, change2);
+      expect(val2.value, isNot(change2));
     });
   });
 }
