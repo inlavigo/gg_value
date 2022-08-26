@@ -88,6 +88,26 @@ void main() {
     });
 
     // #########################################################################
+    group('forceUpdate()', () {
+      test('Should inform listeners about the last value', () {
+        fakeAsync((fake) {
+          init();
+          final receivedUpdates = [];
+          v.stream.listen(
+            (value) => receivedUpdates.add(value),
+          );
+
+          v.value = 10;
+          fake.flushMicrotasks();
+          expect(receivedUpdates, [10]);
+          v.forceUpdate();
+          fake.flushMicrotasks();
+          expect(receivedUpdates, [10, 10]);
+        });
+      });
+    });
+
+    // #########################################################################
     group('seed', () {
       test('returns the seed value', () {
         init();

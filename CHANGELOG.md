@@ -1,8 +1,9 @@
 # Change Log
 
-## 1.3.6+3
+## 1.3.6+4
 
-- `sync` and `unsync` to sync multiple values with each other.
+- Add `sync` and `unsync` to sync multiple values with each other.
+- Add `forceUpdate` to send the current value to listeners again
 
 ## 1.2.0
 

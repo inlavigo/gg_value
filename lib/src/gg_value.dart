@@ -198,6 +198,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
         _parse = parse,
         _stringify = stringify {
     _initController();
+    _initSync();
   }
 
   // ...........................................................................
@@ -212,6 +213,12 @@ class GgValue<T> implements GgReadOnlyValue<T> {
     } else {
       _sync!.value = value;
     }
+  }
+
+  // ...........................................................................
+  /// Informs all listeners about a change.
+  void forceUpdate() {
+    _controller.add(_value);
   }
 
   // ...........................................................................
@@ -365,6 +372,9 @@ class GgValue<T> implements GgReadOnlyValue<T> {
 
   // ...........................................................................
   GgSync? _sync;
+  void _initSync() {
+    _dispose.add(unsync);
+  }
 
   // ...........................................................................
   /// Two way sync this value with another value
