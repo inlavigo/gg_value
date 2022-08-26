@@ -11,6 +11,7 @@ features like efficient observing, string conversion etc.
 - A custom `compare` function, making sure only changes are delivered.
 - A custom `stringify` function to convert the value into a string.
 - A custom `parse` function converting strings into value.
+- A `syncWith` and `unsync` function to sync the value with another ones.
 
 ## Usage
 

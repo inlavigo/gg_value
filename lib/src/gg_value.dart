@@ -6,6 +6,8 @@
 
 import 'dart:async';
 
+part 'gg_sync.dart';
+
 // #############################################################################
 /// [GgValueStream] is an ordinary stream that provides a [value] method that
 /// returns the last value or will be emitted by the stream.
@@ -361,6 +363,26 @@ class GgValue<T> implements GgReadOnlyValue<T> {
     return 'GgValue<${T.toString()}>(${name != null ? 'name: $name, ' : ''}value: $value)';
   }
 
+  // ...........................................................................
+  GgSync? _sync;
+
+  // ...........................................................................
+  /// Two way sync this value with another value
+  void syncWith(GgValue<T> other) {
+    if (other == this) {
+      return;
+    }
+
+    _sync ??= GgSync<T>._(firstValue: this);
+    _sync!._addValue(other);
+  }
+
+  // ...........................................................................
+  /// Remove the synchronization with another element
+  void unsync() {
+    _sync?._removeValue(this);
+  }
+
   // ######################
   // Private
   // ######################
@@ -417,112 +439,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   final String Function(T)? _stringify;
 
   // ...........................................................................
-  GgSync? _sync;
-
-  // ...........................................................................
   void _applySync(T syncedValue) {
     _setValue(syncedValue);
-  }
-}
-
-// #############################################################################
-/// Synchronize a bunch of values
-class GgSync<T> {
-  /// [values] is the initial list of values to be synced.
-  /// Additional values can be added using [addValue] and [removeValue].
-  /// [seed] is the initial value that is synced to all values in the list.
-  GgSync({
-    required List<GgValue<T>> values,
-    required T seed,
-  }) : _value = seed {
-    _init(values);
-  }
-
-  // ...........................................................................
-  /// Call this method when the sync is not needed anymore.
-  /// Will remove the sync from all values.
-  void dispose() {
-    for (final d in _dispose.reversed) {
-      d();
-    }
-  }
-
-  // ...........................................................................
-  /// Add a value to be synced with previously added values.
-  void addValue(GgValue<T> value) {
-    if (values.contains(value)) {
-      throw ArgumentError('The value has already been added.'
-          'Make sure that you add values only one tim.');
-    }
-
-    if (value._sync != null) {
-      throw ArgumentError(
-        'The value is already synced with another sync object.'
-        'You must not add a value only to one GgSyncValue.',
-      );
-    }
-
-    values.add(value);
-    assert(value._sync == null);
-    value._sync = this;
-    value._applySync(_value);
-  }
-
-  // ...........................................................................
-  void removeValue(GgValue<T> value) {
-    if (!values.contains(value)) {
-      throw ArgumentError(
-          'The value to be removed from sync was not added before.');
-    }
-
-    values.removeWhere((e) => identical(e, value));
-    value._sync = null;
-  }
-
-  // ...........................................................................
-  final values = <GgValue<T>>[];
-
-  // ...........................................................................
-  set value(T val) {
-    if (_value == val) {
-      return;
-    }
-
-    _value = val;
-    for (final v in values) {
-      v._applySync(_value);
-    }
-  }
-
-  // ...........................................................................
-  T get value => _value;
-
-  // ######################
-  // Private
-  // ######################
-
-  final List<Function()> _dispose = [];
-
-  T _value;
-
-  void _init(List<GgValue<T>> values) {
-    _initValues(values);
-    _initDispose();
-  }
-
-  // .........................................................................
-  void _initDispose() {
-    _dispose.add(() {
-      for (final value in values) {
-        value._sync = null;
-      }
-    });
-  }
-
-  // ...........................................................................
-  void _initValues(List<GgValue<T>> vals) {
-    for (final value in vals) {
-      addValue(value);
-    }
   }
 }
