@@ -5,9 +5,11 @@
 // found in the LICENSE file in the root of this repository.
 
 import 'dart:async';
+import 'dart:math';
 
 part 'gg_sync.dart';
 part 'gg_change.dart';
+part 'gg_list_value.dart';
 
 // #############################################################################
 /// [GgValueStream] is an ordinary stream that provides a [value] method that
@@ -448,8 +450,11 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   T _value;
 
   // ...........................................................................
+  GgChange<T>? _changeToBeApplied;
+
   void _applyChange(GgChange<T> change) {
     _value = transform == null ? change.newValue : transform!(change.newValue);
+    _changeToBeApplied = change;
 
     if (spam) {
       _controller.add(_value);
@@ -463,7 +468,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
         }
 
         if (_changeController?.hasListener == true && !_isDisposed) {
-          _changeController?.add(change);
+          _changeController?.add(_changeToBeApplied!);
         }
       });
     }

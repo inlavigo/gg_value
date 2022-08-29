@@ -9,6 +9,10 @@ import 'dart:convert';
 import 'package:gg_value/gg_value.dart';
 
 void main() async {
+  // ....................................
+  // Create a method waiting a short time
+  Future<void> flush() => Future.delayed(const Duration(microseconds: 1));
+
   // ...........................
   // Get synchronously set value
   var v = GgValue<int>(seed: 5, spam: false);
@@ -24,7 +28,7 @@ void main() async {
   v.value = 1;
   v.value = 2;
   v.value = 3;
-  await Future.delayed(const Duration(microseconds: 1));
+  await flush();
 
   // Outputs:
   // Async: 3
@@ -35,7 +39,7 @@ void main() async {
   v.value = 7;
   v.value = 8;
   v.value = 9;
-  await Future.delayed(const Duration(microseconds: 1));
+  await flush();
 
   // Outputs:
   // Async: 7
@@ -50,7 +54,7 @@ void main() async {
   print('Transformed: ${v2.value}');
   v2.value = 10;
   print('Transformed: ${v2.value}');
-  await Future.delayed(const Duration(microseconds: 1));
+  await flush();
 
   // Outputs:
   // Transformed: 4
@@ -76,7 +80,7 @@ void main() async {
   v3.value = 'Berta';
   v3.value = 'Bernd';
 
-  await Future.delayed(const Duration(microseconds: 1));
+  await flush();
 
   print(receivedUpdates.join(', '));
 
@@ -125,7 +129,7 @@ void main() async {
   val7.stream.listen((value) => print(value));
   val7.value++;
   val7.dispose();
-  await Future.delayed(const Duration(microseconds: 1));
+  await flush();
 
   // Outputs:
   // Nothing, because value has been disposed
@@ -167,4 +171,70 @@ void main() async {
   // B
   // B
   // C
+
+  // .............................
+  // Handle lists and it's changes
+  final listValue = GgListValue(seed: [0, 1, 2, 3]);
+  late GgChange<List<int>> lastChange;
+  listValue.changeStream.listen((event) => lastChange = event);
+
+  listValue.add(4);
+  await flush();
+  print('type: ${lastChange.type}');
+  print('index: ${lastChange.index}');
+  print('oldValue: ${lastChange.oldValue}');
+  print('newValue: ${lastChange.newValue}');
+
+  // type: GgChangeType.insert
+  // index: 4
+  // old: [0, 1, 2, 3]
+  // new: [0, 1, 2, 3, 4]
+
+  listValue.remove(4);
+  await flush();
+  print('type: ${lastChange.type}');
+  print('index: ${lastChange.index}');
+  print('oldValue: ${lastChange.oldValue}');
+  print('newValue: ${lastChange.newValue}');
+
+  // type: GgChangeType.remove
+  // index: 4
+  // old: [0, 1, 2, 3, 4]
+  // new: [0, 1, 2, 3]
+
+  listValue.insertAfter(3, 4);
+  await flush();
+  print('type: ${lastChange.type}');
+  print('index: ${lastChange.index}');
+  print('oldValue: ${lastChange.oldValue}');
+  print('newValue: ${lastChange.newValue}');
+
+  // type: GgChangeType.insert
+  // index: 4
+  // old: [0, 1, 2, 3]
+  // new: [0, 1, 2, 3, 4]
+
+  listValue.insertBefore(0, -1);
+  await flush();
+  print('type: ${lastChange.type}');
+  print('index: ${lastChange.index}');
+  print('oldValue: ${lastChange.oldValue}');
+  print('newValue: ${lastChange.newValue}');
+
+  // type: GgChangeType.insert
+  // index: 4
+  // old: [0, 1, 2, 3, 4]
+  // new: [-1, 0, 1, 2, 3, 4]
+
+  listValue.removeAt(0);
+  await flush();
+  print('type: ${lastChange.type}');
+  print('index: ${lastChange.index}');
+  print('oldValue: ${lastChange.oldValue}');
+  print('newValue: ${lastChange.newValue}');
+
+  // type: GgChangeType.remove
+  // index: 4
+  // old: [-1, 0, 1, 2, 3, 4]
+  // new: [0, 1, 2, 3, 4]
 }

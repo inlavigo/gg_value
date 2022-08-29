@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.4.0-beta.1
+
+- Add `changeStream` providing detailed information about changes
+- Add `GgListValue` inkl. `add`, `removeAt`, `remove`, `insertAfter`, `insertBefore`.
+
 ## 1.3.6
 
 - Add `sync` and `unsync` to sync multiple values with each other.

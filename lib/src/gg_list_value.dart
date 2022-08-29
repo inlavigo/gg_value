@@ -4,9 +4,7 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
-import 'dart:math';
-
-import '../gg_value.dart';
+part of 'gg_value.dart';
 
 /// Represents a list value including special updates
 class GgListValue<T> extends GgValue<List<T>> {
@@ -24,21 +22,37 @@ class GgListValue<T> extends GgValue<List<T>> {
   // ...........................................................................
   /// Adds a new item to the list
   void add(T newVal) {
-    value = [...value, newVal];
+    final updatedValue = [...value, newVal];
+    final change = GgChange(
+      newValue: updatedValue,
+      oldValue: value,
+      type: GgChangeType.insert,
+      index: value.length,
+    );
+    _syncAndApplyChange(change);
   }
 
   // ...........................................................................
   /// Removes an item from the list
   void removeAt(int index) {
-    value = [...value]..removeAt(index);
+    final newVal = [...value]..removeAt(index);
+    final change = GgChange(
+      newValue: newVal,
+      oldValue: value,
+      type: GgChangeType.remove,
+      index: index,
+    );
+    _syncAndApplyChange(change);
   }
 
   // ...........................................................................
   /// Removes the first occurence of the item
   void remove(T val) {
-    value = [...value]..removeWhere(
-        (element) => identical(element, val),
-      );
+    final index = value.indexWhere(
+      (element) => identical(element, val),
+    );
+
+    removeAt(index);
   }
 
   // ...........................................................................
@@ -46,15 +60,19 @@ class GgListValue<T> extends GgValue<List<T>> {
   void insertAfter(int index, T newVal) {
     index = min(value.length - 1, index);
     index = max(-1, index);
-    value = [...value]..insert(index + 1, newVal);
+    index += 1;
+    final change = GgChange(
+      oldValue: value,
+      newValue: [...value]..insert(index, newVal),
+      type: GgChangeType.insert,
+      index: index,
+    );
+    _syncAndApplyChange(change);
   }
 
   // ...........................................................................
   /// Inserts a new value before a given index
   void insertBefore(int index, T newVal) {
-    index = min(value.length, index);
-    index = max(0, index);
-
-    value = [...value]..insert(index, newVal);
+    insertAfter(index - 1, newVal);
   }
 }

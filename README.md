@@ -16,7 +16,15 @@ features like efficient observing, string conversion etc.
 ## Usage
 
 ```dart
+import 'dart:convert';
+
+import 'package:gg_value/gg_value.dart';
+
 void main() async {
+  // ....................................
+  // Create a method waiting a short time
+  Future<void> flush() => Future.delayed(const Duration(microseconds: 1));
+
   // ...........................
   // Get synchronously set value
   var v = GgValue<int>(seed: 5, spam: false);
@@ -32,7 +40,7 @@ void main() async {
   v.value = 1;
   v.value = 2;
   v.value = 3;
-  await Future.delayed(Duration(microseconds: 1));
+  await flush();
 
   // Outputs:
   // Async: 3
@@ -43,7 +51,7 @@ void main() async {
   v.value = 7;
   v.value = 8;
   v.value = 9;
-  await Future.delayed(Duration(microseconds: 1));
+  await flush();
 
   // Outputs:
   // Async: 7
@@ -52,13 +60,13 @@ void main() async {
 
   // ..................................
   // Check or transform assigned values
-  final ensureMaxFive = (int v) => v > 5 ? 5 : v;
+  int ensureMaxFive(int v) => v > 5 ? 5 : v;
   var v2 = GgValue<int>(seed: 0, transform: ensureMaxFive);
   v2.value = 4;
   print('Transformed: ${v2.value}');
   v2.value = 10;
   print('Transformed: ${v2.value}');
-  await Future.delayed(Duration(microseconds: 1));
+  await flush();
 
   // Outputs:
   // Transformed: 4
@@ -67,8 +75,8 @@ void main() async {
   // ...............................................
   // Deliver only updates, when values have changed.
   // The param 'isEqual' allows to specify an own comparison function.
-  final haveSameFirstLetters =
-      (String a, String b) => a.substring(0, 1) == b.substring(0, 1);
+  bool haveSameFirstLetters(String a, String b) =>
+      a.substring(0, 1) == b.substring(0, 1);
 
   var v3 = GgValue<String>(
     seed: 'Karl',
@@ -84,7 +92,7 @@ void main() async {
   v3.value = 'Berta';
   v3.value = 'Bernd';
 
-  await Future.delayed(Duration(microseconds: 1));
+  await flush();
 
   print(receivedUpdates.join(', '));
 
@@ -106,7 +114,7 @@ void main() async {
   // Specify a custom parse and to string function
   int parseEm(String em) => int.parse(em.replaceAll('em', ''));
   String toEmString(int val) => '${val}em';
-  var v5 = GgValue(seed: 0, parse: parseEm, toString: toEmString);
+  var v5 = GgValue(seed: 0, parse: parseEm, stringify: toEmString);
   v5.stringValue = '5em';
   print(v5.value);
   print(v5.stringValue);
@@ -122,6 +130,21 @@ void main() async {
   final object = jsonDecode('{"a": 7}');
   val6.jsonDecodedValue = object['a'];
   print(val6.value);
+
+  // Outputs:
+  // 7
+
+  // .............................
+  // Finally call dispose to close all streams and make sure
+  // pending updates are not emitted anymore.
+  final val7 = GgValue(seed: 6, spam: false);
+  val7.stream.listen((value) => print(value));
+  val7.value++;
+  val7.dispose();
+  await flush();
+
+  // Outputs:
+  // Nothing, because value has been disposed
 
   // ..........................................
   // Sync multiple values using syncWith and unsync
@@ -160,6 +183,72 @@ void main() async {
   // B
   // B
   // C
+
+  // .............................
+  // Handle lists and it's changes
+  final listValue = GgListValue(seed: [0, 1, 2, 3]);
+  late GgChange<List<int>> lastChange;
+  listValue.changeStream.listen((event) => lastChange = event);
+
+  listValue.add(4);
+  await flush();
+  print('type: ${lastChange.type}');
+  print('index: ${lastChange.index}');
+  print('oldValue: ${lastChange.oldValue}');
+  print('newValue: ${lastChange.newValue}');
+
+  // type: GgChangeType.insert
+  // index: 4
+  // old: [0, 1, 2, 3]
+  // new: [0, 1, 2, 3, 4]
+
+  listValue.remove(4);
+  await flush();
+  print('type: ${lastChange.type}');
+  print('index: ${lastChange.index}');
+  print('oldValue: ${lastChange.oldValue}');
+  print('newValue: ${lastChange.newValue}');
+
+  // type: GgChangeType.remove
+  // index: 4
+  // old: [0, 1, 2, 3, 4]
+  // new: [0, 1, 2, 3]
+
+  listValue.insertAfter(3, 4);
+  await flush();
+  print('type: ${lastChange.type}');
+  print('index: ${lastChange.index}');
+  print('oldValue: ${lastChange.oldValue}');
+  print('newValue: ${lastChange.newValue}');
+
+  // type: GgChangeType.insert
+  // index: 4
+  // old: [0, 1, 2, 3]
+  // new: [0, 1, 2, 3, 4]
+
+  listValue.insertBefore(0, -1);
+  await flush();
+  print('type: ${lastChange.type}');
+  print('index: ${lastChange.index}');
+  print('oldValue: ${lastChange.oldValue}');
+  print('newValue: ${lastChange.newValue}');
+
+  // type: GgChangeType.insert
+  // index: 4
+  // old: [0, 1, 2, 3, 4]
+  // new: [-1, 0, 1, 2, 3, 4]
+
+  listValue.removeAt(0);
+  await flush();
+  print('type: ${lastChange.type}');
+  print('index: ${lastChange.index}');
+  print('oldValue: ${lastChange.oldValue}');
+  print('newValue: ${lastChange.newValue}');
+
+  // type: GgChangeType.remove
+  // index: 4
+  // old: [-1, 0, 1, 2, 3, 4]
+  // new: [0, 1, 2, 3, 4]
 }
 
 ```

@@ -5,4 +5,3 @@
 // found in the LICENSE file in the root of this repository.
 
 export 'src/gg_value.dart';
-export 'src/gg_list_value.dart';

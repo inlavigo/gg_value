@@ -5,11 +5,16 @@
 // found in the LICENSE file in the root of this package.
 
 import 'package:fake_async/fake_async.dart';
-import 'package:gg_value/src/gg_list_value.dart';
+import 'package:gg_value/gg_value.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final GgListValue<int> listValue = GgListValue(seed: [0, 1, 2, 3]);
+  const seed = [0, 1, 2, 3];
+  final GgListValue<int> listValue = GgListValue(seed: seed);
+
+  late GgChange lastChange;
+
+  listValue.changeStream.listen(((event) => lastChange = event));
 
   void init() {
     listValue.reset();
@@ -17,27 +22,59 @@ void main() {
 
   void dispose() {}
 
+  void expectInsert({
+    required int index,
+    required List<int> changedValue,
+  }) {
+    expect(listValue.value, changedValue);
+    expect(lastChange.index, index);
+    expect(lastChange.type, GgChangeType.insert);
+    expect(lastChange.oldValue, seed);
+    expect(lastChange.newValue, changedValue);
+  }
+
   group('GgListValue', () {
     // #########################################################################
     group('add', () {
       test('should work correctly', () {
         fakeAsync((fake) {
           init();
+
+          // Make a change
+          const changedValue = [0, 1, 2, 3, 4];
           listValue.add(4);
-          expect(listValue.value, [0, 1, 2, 3, 4]);
+          fake.flushMicrotasks();
+
+          // Was the right change emiited?
+          expect(listValue.value, changedValue);
+          expect(lastChange.index, listValue.value.length - 1);
+          expect(lastChange.type, GgChangeType.insert);
+          expect(lastChange.oldValue, seed);
+          expect(lastChange.newValue, [...seed, 4]);
+          expect(lastChange.type, GgChangeType.insert);
+
           dispose();
         });
       });
-
-      test('should emit the right change', () {});
     });
 
     group('removeAt', () {
       test('should work correctly', () {
         fakeAsync((fake) {
           init();
-          listValue.removeAt(3);
-          expect(listValue.value, [0, 1, 2]);
+
+          // Delete an element
+          const deleteIndex = 3;
+          const changedValue = [0, 1, 2];
+          listValue.removeAt(deleteIndex);
+          fake.flushMicrotasks();
+
+          // Was the right change emiited?
+          expect(listValue.value, changedValue);
+          expect(lastChange.index, deleteIndex);
+          expect(lastChange.type, GgChangeType.remove);
+          expect(lastChange.oldValue, seed);
+          expect(lastChange.newValue, changedValue);
           dispose();
         });
       });
@@ -47,8 +84,20 @@ void main() {
       test('should work correctly', () {
         fakeAsync((fake) {
           init();
+
+          // Remove a value
+          const deleteIndex = 2;
+          const changedValue = [0, 1, 3];
           listValue.remove(2);
-          expect(listValue.value, [0, 1, 3]);
+          fake.flushMicrotasks();
+
+          // Was the right change emitted?
+          expect(listValue.value, changedValue);
+          expect(lastChange.index, deleteIndex);
+          expect(lastChange.type, GgChangeType.remove);
+          expect(lastChange.oldValue, seed);
+          expect(lastChange.newValue, changedValue);
+
           dispose();
         });
       });
@@ -60,19 +109,23 @@ void main() {
           init();
 
           listValue.insertAfter(10, 4);
-          expect(listValue.value, [0, 1, 2, 3, 4]);
+          fake.flushMicrotasks();
+          expectInsert(index: 4, changedValue: [0, 1, 2, 3, 4]);
 
           listValue.reset();
           listValue.insertAfter(-10, -1);
-          expect(listValue.value, [-1, 0, 1, 2, 3]);
+          fake.flushMicrotasks();
+          expectInsert(index: 0, changedValue: [-1, 0, 1, 2, 3]);
 
           listValue.reset();
           listValue.insertAfter(0, 1);
-          expect(listValue.value, [0, 1, 1, 2, 3]);
+          fake.flushMicrotasks();
+          expectInsert(index: 1, changedValue: [0, 1, 1, 2, 3]);
 
           listValue.reset();
           listValue.insertAfter(1, 2);
-          expect(listValue.value, [0, 1, 2, 2, 3]);
+          fake.flushMicrotasks();
+          expectInsert(index: 2, changedValue: [0, 1, 2, 2, 3]);
 
           dispose();
         });
@@ -84,23 +137,28 @@ void main() {
         init();
 
         listValue.insertBefore(-10, -1);
-        expect(listValue.value, [-1, 0, 1, 2, 3]);
+        fake.flushMicrotasks();
+        expectInsert(index: 0, changedValue: [-1, 0, 1, 2, 3]);
 
         listValue.reset();
         listValue.insertBefore(0, -1);
-        expect(listValue.value, [-1, 0, 1, 2, 3]);
+        fake.flushMicrotasks();
+        expectInsert(index: 0, changedValue: [-1, 0, 1, 2, 3]);
 
         listValue.reset();
         listValue.insertBefore(2, 1);
-        expect(listValue.value, [0, 1, 1, 2, 3]);
+        fake.flushMicrotasks();
+        expectInsert(index: 2, changedValue: [0, 1, 1, 2, 3]);
 
         listValue.reset();
         listValue.insertBefore(listValue.value.length, 4);
-        expect(listValue.value, [0, 1, 2, 3, 4]);
+        fake.flushMicrotasks();
+        expectInsert(index: 4, changedValue: [0, 1, 2, 3, 4]);
 
         listValue.reset();
         listValue.insertBefore(100, 4);
-        expect(listValue.value, [0, 1, 2, 3, 4]);
+        fake.flushMicrotasks();
+        expectInsert(index: 4, changedValue: [0, 1, 2, 3, 4]);
 
         dispose();
       });

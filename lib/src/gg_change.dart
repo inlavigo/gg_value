@@ -7,7 +7,6 @@
 part of 'gg_value.dart';
 
 enum GgChangeType {
-  add,
   remove,
   insert,
   update,
