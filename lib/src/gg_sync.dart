@@ -29,7 +29,8 @@ class GgSync<T> {
     values.add(value);
     assert(value._sync == null);
     value._sync = this;
-    value._applySync(_value);
+
+    value._applyChange(value._change(_value));
   }
 
   // ...........................................................................
@@ -50,14 +51,15 @@ class GgSync<T> {
   final values = <GgValue<T>>[];
 
   // ...........................................................................
-  set value(T val) {
-    if (_value == val) {
+  void applyChange(GgChange<T> change) {
+    if (_value == change.newValue) {
       return;
     }
 
-    _value = val;
+    _value = change.newValue;
+
     for (final v in values) {
-      v._applySync(_value);
+      v._applyChange(change);
     }
   }
 

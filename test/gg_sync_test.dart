@@ -72,5 +72,24 @@ void main() {
       expect(val0.isSynced, false);
       expect(val2.isSynced, false);
     });
+
+    test('should allow to sync GgListValue', () {
+      // Create three GgList values
+      final val0 = GgListValue<int>();
+      final val1 = GgListValue<int>();
+      final val2 = GgListValue<int>();
+
+      // Sync all three with each other
+      val0.syncWith(val1);
+      val1.syncWith(val2);
+
+      // Make a change
+      val1.add(5);
+
+      // Check if change was synced
+      expect(val0.value, [5]);
+      expect(val1.value, [5]);
+      expect(val2.value, [5]);
+    });
   });
 }

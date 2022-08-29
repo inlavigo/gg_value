@@ -14,7 +14,7 @@ enum GgChangeType {
 }
 
 class GgChange<T> {
-  GgChange({
+  const GgChange({
     required this.newValue,
     required this.oldValue,
     required this.type,

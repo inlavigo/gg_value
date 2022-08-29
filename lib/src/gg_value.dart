@@ -208,13 +208,22 @@ class GgValue<T> implements GgReadOnlyValue<T> {
 
   // ...........................................................................
   /// Sets the value and triggers an update on the stream.
-  set value(T value) {
-    if (_sync == null) {
-      _setValue(value);
-    } else {
-      _sync!.value = value;
+  set value(T newVal) {
+    if (newVal == _value) {
+      return;
     }
+
+    if (compare != null && compare!(newVal, _value)) {
+      return;
+    }
+
+    final change = _change(newVal);
+    _syncAndApplyChange(change);
   }
+
+  // ...........................................................................
+  GgChange<T> _change(T newVal) =>
+      GgChange(newValue: newVal, oldValue: _value, type: GgChangeType.update);
 
   // ...........................................................................
   /// Informs all listeners about a change.
@@ -439,22 +448,8 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   T _value;
 
   // ...........................................................................
-  void _setValue(T value) {
-    if (value == _value) {
-      return;
-    }
-
-    if (compare != null && compare!(value, _value)) {
-      return;
-    }
-
-    final change = GgChange<T>(
-      oldValue: _value,
-      newValue: value,
-      type: GgChangeType.update,
-    );
-
-    _value = transform == null ? value : transform!(value);
+  void _applyChange(GgChange<T> change) {
+    _value = transform == null ? change.newValue : transform!(change.newValue);
 
     if (spam) {
       _controller.add(_value);
@@ -475,6 +470,15 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   }
 
   // ...........................................................................
+  void _syncAndApplyChange(GgChange<T> change) {
+    if (_sync == null) {
+      _applyChange(change);
+    } else {
+      _sync!.applyChange(change);
+    }
+  }
+
+  // ...........................................................................
   final T _seed;
 
   // ...........................................................................
@@ -485,9 +489,4 @@ class GgValue<T> implements GgReadOnlyValue<T> {
 
   // ...........................................................................
   final String Function(T)? _stringify;
-
-  // ...........................................................................
-  void _applySync(T syncedValue) {
-    _setValue(syncedValue);
-  }
 }
