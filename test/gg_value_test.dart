@@ -432,6 +432,33 @@ void main() {
     });
 
     // #########################################################################
+    group('changeStream', () {
+      test('should provide details about a change', () {
+        fakeAsync((fake) {
+          // Create a value
+          const seed = 5;
+          final value = GgValue(seed: seed);
+
+          // Listen to changes
+          GgChange<int>? lastChange;
+          value.changeStream.listen((event) => lastChange = event);
+          fake.flushMicrotasks();
+          expect(lastChange, isNull);
+
+          // Make a change
+          value.value++;
+          fake.flushMicrotasks();
+
+          // Check the received change
+          expect(lastChange!.index, -1);
+          expect(lastChange!.oldValue, seed);
+          expect(lastChange!.newValue, seed + 1);
+          expect(lastChange!.type, GgChangeType.update);
+        });
+      });
+    });
+
+    // #########################################################################
     group('.operator==', () {
       test('should return true if the value is the same', () {
         expect(GgValue(seed: 123) == GgValue(seed: 123), true);

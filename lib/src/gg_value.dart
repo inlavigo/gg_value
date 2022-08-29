@@ -7,6 +7,7 @@
 import 'dart:async';
 
 part 'gg_sync.dart';
+part 'gg_change.dart';
 
 // #############################################################################
 /// [GgValueStream] is an ordinary stream that provides a [value] method that
@@ -403,12 +404,35 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   final List<Function()> _dispose = [];
   bool get _isDisposed => _dispose.isEmpty;
 
+  // .............
+  // Stream
+
   // ...........................................................................
   final StreamController<T> _controller = StreamController<T>.broadcast();
   late _GgValueStream<T> _stream;
   void _initController() {
-    _dispose.add(() => _controller.close());
+    _dispose.add(_controller.close);
     _stream = _GgValueStream(this);
+  }
+
+  // .............
+  // Change Stream
+
+  // ...........................................................................
+  StreamController<GgChange<T>>? _changeController;
+
+  void _initChangeController() {
+    _changeController = StreamController<GgChange<T>>.broadcast();
+    _dispose.add(_changeController!.close);
+  }
+
+  // ...........................................................................
+  Stream<GgChange<T>> get changeStream {
+    if (_changeController == null) {
+      _initChangeController();
+    }
+
+    return _changeController!.stream;
   }
 
   // ...........................................................................
@@ -424,16 +448,27 @@ class GgValue<T> implements GgReadOnlyValue<T> {
       return;
     }
 
+    final change = GgChange<T>(
+      oldValue: _value,
+      newValue: value,
+      type: GgChangeType.update,
+    );
+
     _value = transform == null ? value : transform!(value);
 
     if (spam) {
       _controller.add(_value);
+      _changeController?.add(change);
     } else if (!_isAlreadyTriggered) {
       _isAlreadyTriggered = true;
       scheduleMicrotask(() {
         _isAlreadyTriggered = false;
         if (_controller.hasListener && !_isDisposed) {
           _controller.add(_value);
+        }
+
+        if (_changeController?.hasListener == true && !_isDisposed) {
+          _changeController?.add(change);
         }
       });
     }

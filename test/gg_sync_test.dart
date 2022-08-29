@@ -60,6 +60,9 @@ void main() {
       expect(val1.value, change2);
       expect(val2.value, isNot(change2));
 
+      // It should throw when reset is called while a value is synced to others.
+      expect(() => val0.reset(), throwsArgumentError);
+
       // If the second last value is unsynced,
       // the sync should be removed from all
       expect(val0.isSynced, true);
