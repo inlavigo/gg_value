@@ -193,6 +193,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
     this.spam = false,
     this.compare,
     this.transform,
+    this.isOk,
     T Function(String)? parse,
     String Function(T)? stringify,
     this.name,
@@ -353,8 +354,13 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   }
 
   // ...........................................................................
-  /// Is used to check if the value assigned is valid.
+  /// Is used to transform assigned values to other ones,
+  /// e.g. to keep the value in a given range.
   final T Function(T)? transform;
+
+  // ...........................................................................
+  /// Use that callback to perform some validation
+  final bool Function(T)? isOk;
 
   // ...........................................................................
   /// Set a custom comparison operator
@@ -453,6 +459,9 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   GgChange<T>? _changeToBeApplied;
 
   void _applyChange(GgChange<T> change) {
+    if (isOk?.call(change.newValue) == false) {
+      return;
+    }
     _value = transform == null ? change.newValue : transform!(change.newValue);
     _changeToBeApplied = change;
 

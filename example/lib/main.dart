@@ -46,8 +46,8 @@ void main() async {
   // Async: 8
   // Async: 9
 
-  // ..................................
-  // Check or transform assigned values
+  // .........................
+  // Transform assigned values
   int ensureMaxFive(int v) => v > 5 ? 5 : v;
   var v2 = GgValue<int>(seed: 0, transform: ensureMaxFive);
   v2.value = 4;
@@ -59,6 +59,21 @@ void main() async {
   // Outputs:
   // Transformed: 4
   // Transformed: 5
+
+  // .....................
+  // Validate input values using isOk
+  bool allowOnlyEven(int val) => val % 2 == 0;
+  var evenOnly = GgValue<int>(seed: 0, isOk: allowOnlyEven);
+
+  evenOnly.value = 4;
+  print('isOk: ${evenOnly.value}');
+
+  evenOnly.value = 5;
+  print('isOk: ${evenOnly.value}');
+
+  // Outputs:
+  // Transformed: 4
+  // Transformed: 4
 
   // ...............................................
   // Deliver only updates, when values have changed.
@@ -237,4 +252,18 @@ void main() async {
   // index: 4
   // old: [-1, 0, 1, 2, 3, 4]
   // new: [0, 1, 2, 3, 4]
+
+  listValue.move(fromIndex: 0, toIndex: 5);
+  await flush();
+  print('type: ${lastChange.type}');
+  print('index: ${lastChange.index}');
+  print('oldIndex: ${lastChange.oldIndex}');
+  print('oldValue: ${lastChange.oldValue}');
+  print('newValue: ${lastChange.newValue}');
+
+  // type: GgChangeType.move
+  // index: 4
+  // oldIndex: 0
+  // oldValue: [0, 1, 2, 3, 4]
+  // newValue: [1, 2, 3, 4, 0]
 }

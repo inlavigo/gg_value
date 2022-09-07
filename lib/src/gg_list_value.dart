@@ -14,6 +14,7 @@ class GgListValue<T> extends GgValue<List<T>> {
     super.spam,
     super.compare,
     super.transform,
+    super.isOk,
     super.parse,
     super.stringify,
     super.name,
@@ -49,7 +50,7 @@ class GgListValue<T> extends GgValue<List<T>> {
   /// Removes the first occurence of the item
   void remove(T val) {
     final index = value.indexWhere(
-      (element) => identical(element, val),
+      (element) => element == val,
     );
 
     removeAt(index);
@@ -66,6 +67,29 @@ class GgListValue<T> extends GgValue<List<T>> {
       newValue: [...value]..insert(index, newVal),
       type: GgChangeType.insert,
       index: index,
+    );
+    _syncAndApplyChange(change);
+  }
+
+  // ...........................................................................
+  /// Moves an element in a list to another position.
+  ///
+  /// [fromIndex] and [toIndex] both point to the places in the old array.
+  void move({required int fromIndex, required int toIndex}) {
+    final newToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+
+    final oldValue = value;
+    final newValue = [...oldValue];
+
+    final element = newValue.removeAt(fromIndex);
+    newValue.insert(newToIndex, element);
+
+    final change = GgChange(
+      oldValue: oldValue,
+      newValue: newValue,
+      type: GgChangeType.move,
+      oldIndex: fromIndex,
+      index: newToIndex,
     );
     _syncAndApplyChange(change);
   }

@@ -10,6 +10,7 @@ enum GgChangeType {
   remove,
   insert,
   update,
+  move,
 }
 
 class GgChange<T> {
@@ -18,10 +19,12 @@ class GgChange<T> {
     required this.oldValue,
     required this.type,
     this.index = -1,
+    this.oldIndex = -1,
   });
 
   final GgChangeType type;
   final T newValue;
   final T oldValue;
   final int index;
+  final int oldIndex;
 }

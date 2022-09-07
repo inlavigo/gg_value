@@ -1,9 +1,10 @@
 # Change Log
 
-## 1.4.0-beta.1
+## 1.4.0-beta.5
 
 - Add `changeStream` providing detailed information about changes
-- Add `GgListValue` inkl. `add`, `removeAt`, `remove`, `insertAfter`, `insertBefore`.
+- Add `GgListValue` incl. `add`, `removeAt`, `remove`, `insertAfter`, `insertBefore`, `move`.
+- Addd `isOk` callback to prevent assignments in the wrong range.
 
 ## 1.3.6
 

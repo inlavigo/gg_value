@@ -356,6 +356,20 @@ void main() {
     });
 
     // #########################################################################
+    group('isOk', () {
+      test('value should only be assigned when isOk returns true', () {
+        bool allowOnlyEven(int val) => val % 2 == 0;
+        var evenOnly = GgValue<int>(seed: 0, isOk: allowOnlyEven);
+
+        evenOnly.value = 4;
+        expect(evenOnly.value, 4);
+
+        evenOnly.value = 5;
+        expect(evenOnly.value, 4);
+      });
+    });
+
+    // #########################################################################
     group('stream', () {
       test('should allow to observe changes of the state', () {
         fakeAsync((fake) {
