@@ -281,6 +281,64 @@ void main() {
           dispose();
         });
       });
+
+      test('should move item from first to second position', () {
+        fakeAsync((fake) {
+          init();
+
+          // Some vars
+          const oldValue = [0, 1];
+          final newValue = [1, 0];
+          listValue.value = oldValue;
+
+          // Move last item to 0
+          var fromIndex = 0;
+          var toIndex = 1;
+          listValue.move(fromIndex: fromIndex, toIndex: toIndex);
+          fake.flushMicrotasks();
+
+          // Check outcome
+          expect(listValue.value, newValue);
+
+          // Check change
+          expect(lastChange.index, toIndex);
+          expect(lastChange.oldIndex, fromIndex);
+          expect(lastChange.type, GgChangeType.move);
+          expect(lastChange.oldValue, oldValue);
+          expect(lastChange.newValue, newValue);
+
+          dispose();
+        });
+      });
+
+      test('should move item from second to first position', () {
+        fakeAsync((fake) {
+          init();
+
+          // Some vars
+          const oldValue = [0, 1];
+          final newValue = [1, 0];
+          listValue.value = oldValue;
+
+          // Move last item to 0
+          var fromIndex = 1;
+          var toIndex = 0;
+          listValue.move(fromIndex: fromIndex, toIndex: toIndex);
+          fake.flushMicrotasks();
+
+          // Check outcome
+          expect(listValue.value, newValue);
+
+          // Check change
+          expect(lastChange.index, toIndex);
+          expect(lastChange.oldIndex, fromIndex);
+          expect(lastChange.type, GgChangeType.move);
+          expect(lastChange.oldValue, oldValue);
+          expect(lastChange.newValue, newValue);
+
+          dispose();
+        });
+      });
     });
   });
 }
