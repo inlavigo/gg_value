@@ -473,6 +473,28 @@ void main() {
     });
 
     // #########################################################################
+    group('syncStream', () {
+      test('should deliver values immediately', () {
+        fakeAsync((fake) {
+          const seed = 5;
+          final value = GgValue(seed: seed);
+          int receivedValue = 0;
+          value.syncStream.listen((value) => receivedValue = value);
+
+          expect(receivedValue, 0);
+          fake.flushMicrotasks();
+
+          // Change a value
+          final valueBefore = value.value;
+          value.value++;
+
+          // Change should be synchronously emitted
+          expect(receivedValue, valueBefore + 1);
+        });
+      });
+    });
+
+    // #########################################################################
     group('.operator==', () {
       test('should return true if the value is the same', () {
         expect(GgValue(seed: 123) == GgValue(seed: 123), true);

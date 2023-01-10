@@ -7,9 +7,9 @@
 import 'dart:async';
 import 'dart:math';
 
-part 'gg_sync.dart';
 part 'gg_change.dart';
 part 'gg_list_value.dart';
+part 'gg_sync.dart';
 
 // #############################################################################
 /// [GgValueStream] is an ordinary stream that provides a [value] method that
@@ -122,7 +122,10 @@ class _WhereValueStream<T> extends GgValueStream<T> {
 // #############################################################################
 /// Returns the stream together with a value getter.
 class _GgValueStream<T> extends GgValueStream<T> {
-  _GgValueStream(GgValue<T> ggValue) : _ggValue = ggValue;
+  _GgValueStream({
+    required T Function() value,
+    required this.baseStream,
+  }) : _value = value;
 
   // ...........................................................................
   @override
@@ -132,17 +135,17 @@ class _GgValueStream<T> extends GgValueStream<T> {
           onError: onError, onDone: onDone, cancelOnError: cancelOnError);
 
   @override
-  Stream<T> get baseStream => _ggValue._controller.stream;
+  final Stream<T> baseStream;
 
   // ...........................................................................
   @override
-  T get value => _ggValue.value;
+  T get value => _value();
 
   // ######################
   // Private
   // ######################
 
-  final GgValue<T> _ggValue;
+  final T Function() _value;
 }
 
 // #############################################################################
@@ -170,6 +173,10 @@ abstract class GgReadOnlyValue<T> {
   /// Returns a stream informing about changes on the value
   // ignore: library_private_types_in_public_api
   _GgValueStream<T> get stream;
+
+  /// Returns a sync stream informing about changes on the value
+  // ignore: library_private_types_in_public_api
+  _GgValueStream<T> get syncStream;
 }
 
 // #############################################################################
@@ -344,6 +351,10 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   // ignore: library_private_types_in_public_api
   _GgValueStream<T> get stream => _stream;
 
+  @override
+  // ignore: library_private_types_in_public_api
+  _GgValueStream<T> get syncStream => _findOrCreateSyncStream;
+
   // ...........................................................................
   /// Call this method when the value is about to be released.
   void dispose() {
@@ -426,10 +437,35 @@ class GgValue<T> implements GgReadOnlyValue<T> {
 
   // ...........................................................................
   final StreamController<T> _controller = StreamController<T>.broadcast();
+  StreamController<T>? _syncController;
   late _GgValueStream<T> _stream;
+  _GgValueStream<T>? _syncStream;
+
   void _initController() {
     _dispose.add(_controller.close);
-    _stream = _GgValueStream(this);
+    _dispose.add(() => _syncController?.close);
+    _stream = _GgValueStream(
+      baseStream: _controller.stream,
+      value: () => value,
+    );
+  }
+
+  // ...........................................................................
+  StreamController<T> get _findOrCreateSyncController {
+    if (_syncController == null) {
+      _syncController = StreamController<T>.broadcast(sync: true);
+      _dispose.add(_syncController!.close);
+    }
+    return _syncController!;
+  }
+
+  // ...........................................................................
+  _GgValueStream<T> get _findOrCreateSyncStream {
+    _syncStream ??= _GgValueStream(
+      baseStream: _findOrCreateSyncController.stream,
+      value: () => value,
+    );
+    return _syncStream!;
   }
 
   // .............
@@ -464,6 +500,10 @@ class GgValue<T> implements GgReadOnlyValue<T> {
     }
     _value = transform == null ? change.newValue : transform!(change.newValue);
     _changeToBeApplied = change;
+
+    if (_syncController?.hasListener == true && !_isDisposed) {
+      _syncController?.add(_value);
+    }
 
     if (spam) {
       _controller.add(_value);

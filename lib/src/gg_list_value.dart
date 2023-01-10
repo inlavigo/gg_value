@@ -76,7 +76,11 @@ class GgListValue<T> extends GgValue<List<T>> {
   ///
   /// [fromIndex] and [toIndex] both point to the places in the old array.
   void move({required int fromIndex, required int toIndex}) {
-    final newToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+    final newToIndex = value.length <= 2
+        ? toIndex
+        : fromIndex < toIndex
+            ? toIndex - 1
+            : toIndex;
 
     final oldValue = value;
     final newValue = [...oldValue];
