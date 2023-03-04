@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.5.2
+
+- Fix a bug when moving list items
+
 ## 1.5.0
 
 - Add `changeStream` providing detailed information about changes

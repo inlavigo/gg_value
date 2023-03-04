@@ -1,11 +1,11 @@
 name: gg_value
 description: GgValue allows managing a value in a dart application. It provides a stream, a flag preventing too many updates, and a custom transform and a comparison function.
-version: 1.5.0
+version: 1.5.2
 homepage: https://github.com/inlavigo/gg_value
 repository: https://github.com/inlavigo/gg_value
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=2.17.0 <4.0.0"
 
 dev_dependencies:
   pedantic: ^1.11.0
