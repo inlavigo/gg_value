@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.6.0
+
+- Update minimum SDK version
+- Update check scripts & VSCode settings
+- Fix warnings
+
 ## 1.5.2
 
 - Fix a bug when moving list items

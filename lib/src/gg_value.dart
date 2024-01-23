@@ -264,7 +264,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
     final t = _value.runtimeType;
 
     if (_parse != null) {
-      value = _parse!.call(str);
+      value = _parse.call(str);
     } else if (t == int) {
       value = int.parse(str) as T;
     } else if (t == double) {
@@ -293,7 +293,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   String get stringValue {
     final t = _value.runtimeType;
     if (_stringify != null) {
-      return _stringify!.call(_value);
+      return _stringify.call(_value);
     } else if (t == String) {
       return _value as String;
     } else if (t == bool) {
@@ -463,7 +463,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   _GgValueStream<T> get _findOrCreateSyncStream {
     _syncStream ??= _GgValueStream(
       baseStream: _findOrCreateSyncController.stream,
-      value: () => value,
+      value: () => value, // coverage:ignore-line
     );
     return _syncStream!;
   }
