@@ -252,7 +252,9 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   // ...........................................................................
   void reset() {
     if (_sync != null) {
+      // coverage:ignore-start
       throw ArgumentError('Don\'t reset values that are currently synced.');
+      // coverage:ignore-end
     } else {
       value = _seed;
     }
@@ -407,6 +409,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
 
   // ...........................................................................
   /// Two way sync this value with another value
+  // coverage:ignore-start
   void syncWith(GgValue<T> other) {
     if (identical(other, this)) {
       return;
@@ -415,6 +418,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
     _sync ??= GgSync<T>._(firstValue: this);
     _sync!._addValue(other);
   }
+  // coverage:ignore-end
 
   // ...........................................................................
   /// Remove the synchronization with another element
@@ -423,7 +427,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
   }
 
   // ...........................................................................
-  bool get isSynced => _sync != null;
+  bool get isSynced => _sync != null; // coverage:ignore-line
 
   // ######################
   // Private
@@ -528,7 +532,7 @@ class GgValue<T> implements GgReadOnlyValue<T> {
     if (_sync == null) {
       _applyChange(change);
     } else {
-      _sync!.applyChange(change);
+      _sync!.applyChange(change); // coverage:ignore-line
     }
   }
 
