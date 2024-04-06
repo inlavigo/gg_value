@@ -5,6 +5,7 @@
 ### Changed
 
 - Rework changelog + repository URL in pubspec.yaml
+- 'Github Actions Pipeline'
 
 ## 1.6.0 - 2024-01-01
 
