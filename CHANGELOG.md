@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.6.2] - 2024-04-09
 
 ### Removed
 
@@ -85,5 +85,5 @@ specified. An exception will by thrown only `stringValue` is used.
 
 - Initial version.
 
-[Unreleased]: https://github.com/inlavigo/gg_value/compare/1.6.1...HEAD
+[1.6.2]: https://github.com/inlavigo/gg_value/compare/1.6.1...1.6.2
 [1.6.1]: https://github.com/inlavigo/gg_value/compare/1.6.0...1.6.1
