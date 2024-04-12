@@ -14,4 +14,3 @@ dev_dependencies:
   args: ^2.4.2
   pana: ^0.22.2
   gg_capture_print: ^1.0.2
-  gg_install_gg: ^1.0.1
