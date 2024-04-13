@@ -1,11 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [1.6.3] - 2024-04-13
 
 ### Removed
 
 - dependency to gg\_install\_gg, remove ./check script
 - dependency to gg\_install\_gg, remove ./check script
+- dependency pana
 
 ## [1.6.2] - 2024-04-09
 
@@ -92,6 +93,6 @@ specified. An exception will by thrown only `stringValue` is used.
 
 - Initial version.
 
-[Unreleased]: https://github.com/inlavigo/gg_value/compare/1.6.2...HEAD
+[1.6.3]: https://github.com/inlavigo/gg_value/compare/1.6.2...1.6.3
 [1.6.2]: https://github.com/inlavigo/gg_value/compare/1.6.1...1.6.2
 [1.6.1]: https://github.com/inlavigo/gg_value/compare/1.6.0...1.6.1
